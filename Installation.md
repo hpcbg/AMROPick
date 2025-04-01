@@ -39,7 +39,7 @@ This document shows how you can install Anaconda, Webots and all the required pa
 
    You can also install all the packages with:
 
-   `pip install -r requirements.txt`.
+   `pip install -r requirements_CPU.txt`.
 
 6. If you want to install the GPU version of PyTorch go to the PyTorch Get Started web site: https://pytorch.org/get-started/locally/ and select your environment. Get the command and add the `--upgrade` flag.
    The command will look like this:
