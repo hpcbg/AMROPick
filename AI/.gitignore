@@ -5,7 +5,6 @@
 # Datasets
 datasets/*
 !datasets/.gitkeep
-!datasets/detect/.gitkeep
 !datasets/detect/train/.gitkeep
 !datasets/detect/val/.gitkeep
 !datasets/classify/.gitkeep
@@ -21,5 +20,5 @@ runs
 .ipynb_checkpoints
 
 # IPython
-profile_default/
+profile_default
 ipython_config.py
