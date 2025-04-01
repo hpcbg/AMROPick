@@ -3,13 +3,34 @@
 !models/yolo11m-obb-custom.pt
 
 # Datasets
-datasets/*
-!datasets/.gitkeep
-!datasets/detect/train/.gitkeep
-!datasets/detect/val/.gitkeep
-!datasets/classify/.gitkeep
-!datasets/obb/train/.gitkeep
-!datasets/obb/val/.gitkeep
+datasets/**
+!datasets/classify/
+!datasets/classify/train/
+!datasets/classify/train/.gitkeep
+!datasets/classify/val/
+!datasets/classify/val/.gitkeep
+!datasets/detect/
+!datasets/detect/train/
+!datasets/detect/train/images/
+!datasets/detect/train/images/.gitkeep
+!datasets/detect/train/labels/
+!datasets/detect/train/labels/.gitkeep
+!datasets/detect/val/
+!datasets/detect/val/images/
+!datasets/detect/val/images/.gitkeep
+!datasets/detect/val/labels/
+!datasets/detect/val/labels/.gitkeep
+!datasets/obb/
+!datasets/obb/train/
+!datasets/obb/train/images/
+!datasets/obb/train/images/.gitkeep
+!datasets/obb/train/labels/
+!datasets/obb/train/labels/.gitkeep
+!datasets/obb/val/
+!datasets/obb/val/images/
+!datasets/obb/val/images/.gitkeep
+!datasets/obb/val/labels/
+!datasets/obb/val/labels/.gitkeep
 !datasets/data-detect.yaml
 !datasets/data-obb.yaml
 
