@@ -1,0 +1,25 @@
+# Models
+*.pt
+!models/yolo11m-obb-custom.pt
+
+# Datasets
+datasets/*
+!datasets/.gitkeep
+!datasets/detect/.gitkeep
+!datasets/detect/train/.gitkeep
+!datasets/detect/val/.gitkeep
+!datasets/classify/.gitkeep
+!datasets/obb/train/.gitkeep
+!datasets/obb/val/.gitkeep
+!datasets/data-detect.yaml
+!datasets/data-obb.yaml
+
+# YOLO Training Data
+runs
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
