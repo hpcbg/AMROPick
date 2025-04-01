@@ -1,6 +1,7 @@
 # Models
 *.pt
-!models/yolo11m-obb-custom.pt
+!models/yolo11n-obb-custom.pt
+!models/yolov8n-obb-custom.pt
 
 # Datasets
 datasets/**
