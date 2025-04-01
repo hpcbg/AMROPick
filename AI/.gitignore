@@ -2,6 +2,10 @@
 *.pt
 !models/yolo11n-obb-custom.pt
 !models/yolov8n-obb-custom.pt
+!models/yolo11n-detect-custom.pt
+!models/yolo11n-classify-custom.pt
+!models/yolov8n-detect-custom.pt
+!models/yolov8n-classify-custom.pt
 
 # Datasets
 datasets/**
