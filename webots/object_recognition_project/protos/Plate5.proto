@@ -3,10 +3,10 @@
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/BrushedAluminium.proto"
 
-PROTO Plate1 [
+PROTO Plate5 [
   field SFVec3f    translation    0 0 0
   field SFRotation rotation       0 0 1 0
-  field SFString   name           "Plate1"
+  field SFString   name           "Plate5"
 ]
 {
   Solid {
@@ -14,6 +14,7 @@ PROTO Plate1 [
     rotation IS rotation
     children [
       Pose {
+        translation 0 -0.0425 0
         children [
           Shape {
             appearance BrushedAluminium {
@@ -21,7 +22,7 @@ PROTO Plate1 [
             }
             geometry Mesh {
               url [
-                "Plate1.stl"
+                "Plate5.stl"
               ]
             }
           }
@@ -33,7 +34,7 @@ PROTO Plate1 [
       translation 0 0 0.001
       children [
         Box {
-          size 0.3 0.05 0.002
+          size 0.3 0.085 0.002
         }
       ]
     }
