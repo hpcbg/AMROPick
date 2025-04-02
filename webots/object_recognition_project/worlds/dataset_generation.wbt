@@ -5,8 +5,11 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/tables/protos/Table.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Plaster.proto"
-EXTERNPROTO "../protos/Plate3.proto"
 EXTERNPROTO "../protos/Plate1.proto"
+EXTERNPROTO "../protos/Plate2.proto"
+EXTERNPROTO "../protos/Plate3.proto"
+EXTERNPROTO "../protos/Plate4.proto"
+EXTERNPROTO "../protos/Plate5.proto"
 
 WorldInfo {
   basicTimeStep 16
@@ -18,6 +21,7 @@ Viewpoint {
 TexturedBackground {
 }
 TexturedBackgroundLight {
+  castShadows FALSE
 }
 RectangleArena {
   floorSize 5 5
@@ -74,7 +78,7 @@ Robot {
   name "camera"
   controller "dataset_generator_controller"
   controllerArgs [
-    "Plate3"
+    "Plate2"
   ]
   supervisor TRUE
 }
@@ -103,9 +107,18 @@ Solid {
     ]
   }
 }
-DEF Plate3 Plate3 {
-  translation 0 0 0.884
-}
 DEF Plate1 Plate1 {
-  translation 0 0.15 0.884
+  translation 0 0.82 0.74
+}
+DEF Plate2 Plate2 {
+  translation 0 0.74 0.74
+}
+DEF Plate3 Plate3 {
+  translation 0 0.62 0.74
+}
+DEF Plate4 Plate4 {
+  translation -0.34 0.8 0.774
+}
+DEF Plate5 Plate5 {
+  translation -0.34 0.62 0.74
 }
