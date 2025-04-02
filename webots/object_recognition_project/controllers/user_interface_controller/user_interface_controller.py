@@ -20,7 +20,7 @@ class ClientRobot(QWidget):
         try:
             screen = QGuiApplication.primaryScreen()
             screen_geometry = screen.availableGeometry()
-            self.move(screen_geometry.width() - 700, 100)
+            self.move(screen_geometry.width() - 700, 80)
         except:
             pass
 
@@ -62,11 +62,29 @@ class ClientRobot(QWidget):
         self.find_plate1_button.setEnabled(False)
         detect_layout.addWidget(self.find_plate1_button)
 
+        self.find_plate2_button = QPushButton("Find Plate 2")
+        self.find_plate2_button.clicked.connect(
+            lambda: self.send_request("find_Plate2", self.find_plate2_button))
+        self.find_plate2_button.setEnabled(False)
+        detect_layout.addWidget(self.find_plate2_button)
+
         self.find_plate3_button = QPushButton("Find Plate 3")
         self.find_plate3_button.clicked.connect(
             lambda: self.send_request("find_Plate3", self.find_plate3_button))
         self.find_plate3_button.setEnabled(False)
         detect_layout.addWidget(self.find_plate3_button)
+
+        self.find_plate4_button = QPushButton("Find Plate 4")
+        self.find_plate4_button.clicked.connect(
+            lambda: self.send_request("find_Plate4", self.find_plate4_button))
+        self.find_plate4_button.setEnabled(False)
+        detect_layout.addWidget(self.find_plate4_button)
+
+        self.find_plate5_button = QPushButton("Find Plate 5")
+        self.find_plate5_button.clicked.connect(
+            lambda: self.send_request("find_Plate5", self.find_plate5_button))
+        self.find_plate5_button.setEnabled(False)
+        detect_layout.addWidget(self.find_plate5_button)
 
         detect_group.setLayout(detect_layout)
         main_layout.addWidget(detect_group)
@@ -110,6 +128,21 @@ class ClientRobot(QWidget):
         time.sleep(3)
         self.emitter.send("image")
 
+    def disable_buttons(self):
+        self.find_plate1_button.setEnabled(False)
+        self.find_plate2_button.setEnabled(False)
+        self.find_plate3_button.setEnabled(False)
+        self.find_plate4_button.setEnabled(False)
+        self.find_plate5_button.setEnabled(False)
+        self.pick_button.setEnabled(False)
+
+    def enable_find_buttons(self):
+        self.find_plate1_button.setEnabled(True)
+        self.find_plate2_button.setEnabled(True)
+        self.find_plate3_button.setEnabled(True)
+        self.find_plate4_button.setEnabled(True)
+        self.find_plate5_button.setEnabled(True)
+
     def send_reposition_request(self):
         self.image_label.setPixmap(QPixmap())
         self.find_plate1_button.setEnabled(False)
@@ -121,9 +154,7 @@ class ClientRobot(QWidget):
         self.status_label.setText(
             "Image request is sent. Waiting for a response...")
         self.emitter.send("image")
-        self.find_plate1_button.setEnabled(False)
-        self.find_plate3_button.setEnabled(False)
-        self.pick_button.setEnabled(False)
+        self.disable_buttons()
 
     def send_request(self, message, button):
         self.status_label.setText(
@@ -175,16 +206,13 @@ class ClientRobot(QWidget):
                             ))
 
                             self.status_label.setText(f"Image is received.")
-                            self.find_plate1_button.setEnabled(True)
-                            self.find_plate3_button.setEnabled(True)
+                            self.enable_find_buttons()
                             self.pick_button.setEnabled(False)
 
                     except Exception as e:
                         self.status_label.setText(
                             f"Image processing error: {e}")
-                        self.find_plate1_button.setEnabled(False)
-                        self.find_plate3_button.setEnabled(False)
-                        self.pick_button.setEnabled(False)
+                        self.disable_buttons()
                 elif message.startswith("coords"):
                     self.coords = None
                     try:
@@ -199,7 +227,7 @@ class ClientRobot(QWidget):
                         self.pick_button.setEnabled(False)
                 elif message.startswith("not_found"):
                     self.status_label.setText(
-                        "Object is not found. Try, to refresh the image.")
+                        "Object is not found. Refresh the image.")
                     self.pick_button.setEnabled(False)
 
     def closeEvent(self, event):
