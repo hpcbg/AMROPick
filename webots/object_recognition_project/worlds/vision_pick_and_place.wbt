@@ -89,7 +89,7 @@ Robot {
     }
   ]
   name "Vision System"
-  controller "vision_yolo_controller"
+  controller "vision_amropick_controller"
 }
 Robot {
   children [
