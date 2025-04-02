@@ -41,7 +41,15 @@ This document shows how you can install Anaconda, Webots and all the required pa
 
    `pip install -r requirements_CPU.txt`.
 
-6. If you want to install the GPU version of PyTorch go to the PyTorch Get Started web site: https://pytorch.org/get-started/locally/ and select your environment. Get the command and add the `--upgrade` flag.
+6. Install `amropick-python` to your local virtual environment:
+
+   ```
+   conda activate amropick
+   cd amropick-vision
+   pip install -e .
+   ```
+
+7. If you want to install the GPU version of PyTorch go to the PyTorch Get Started web site: https://pytorch.org/get-started/locally/ and select your environment. Get the command and add the `--upgrade` flag.
    The command will look like this:
 
    `pip3 install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126`
@@ -58,14 +66,14 @@ This document shows how you can install Anaconda, Webots and all the required pa
    >>> True
    ```
 
-7. Now, you can start Jupyter with:
+8. Now, you can start Jupyter with:
 
    ```
-   cd AI
+   cd computer-vision-notebooks
    jupyter-lab
    ```
 
-8. You can now execute the Jupyter Notebooks!
+9. You can now execute the Jupyter Notebooks!
 
 Further, if you want to execute the simulations you need to continue with the Webots installation.
 
