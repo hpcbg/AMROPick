@@ -39,7 +39,7 @@ PROTO Plate1 [
     }
     physics Physics {
       density -1
-      mass 0.001
+      mass 0.01
     }
   }
 }

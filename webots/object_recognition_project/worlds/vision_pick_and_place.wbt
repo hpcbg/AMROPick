@@ -5,9 +5,12 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/tables/protos/Table.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Plaster.proto"
-EXTERNPROTO "../protos/Plate1.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/universal_robots/protos/UR10e.proto"
+EXTERNPROTO "../protos/Plate1.proto"
+EXTERNPROTO "../protos/Plate2.proto"
 EXTERNPROTO "../protos/Plate3.proto"
+EXTERNPROTO "../protos/Plate4.proto"
+EXTERNPROTO "../protos/Plate5.proto"
 
 WorldInfo {
   basicTimeStep 16
@@ -126,10 +129,6 @@ Solid {
     ]
   }
 }
-DEF Plate1 Plate1 {
-  translation -5.481600190425598e-19 0.15 0.8839998037998066
-  rotation 1.6777113003995597e-14 -0.9998412538161361 -0.01781760835177776 9.808091201940182e-17
-}
 UR10e {
   hidden position_0_0 0.5514215561757142
   hidden rotation_1 0 0 1 0.5514215561757142
@@ -178,10 +177,6 @@ UR10e {
     }
   ]
 }
-DEF Plate3 Plate3 {
-  translation -2.8522288128071763e-19 1.653796942121378e-19 0.8839998037998066
-  rotation 0.9977455646754968 0.06705583430254669 0.0027024537671266383 3.587124579726314e-16
-}
 Robot {
   children [
     Receiver {
@@ -190,4 +185,19 @@ Robot {
   name "Supervisor"
   controller "supervisor_controller"
   supervisor TRUE
+}
+DEF Plate1 Plate1 {
+  translation -5.481600190425598e-19 0.15 0.8839998037998066
+}
+DEF Plate2 Plate2 {
+  translation 0 0.74 0.74
+}
+DEF Plate3 Plate3 {
+  translation -2.8522288128071763e-19 1.653796942121378e-19 0.8839998037998066
+}
+DEF Plate4 Plate4 {
+  translation -0.34 0.8 0.74
+}
+DEF Plate5 Plate5 {
+  translation -0.34 0.62 0.74
 }

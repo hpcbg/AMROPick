@@ -6,11 +6,10 @@ import base64
 
 import amropick
 
-apv = amropick.Vision(detect_model_path="../vision_yolo_controller/detect.pt",
-                      classify_model_path="../vision_yolo_controller/classify.pt",
-                      class_names=["Plate1", "Plate3"],
-                      z_offsets=[0.002, 0.002],
-                      class_colors=[(255, 0, 0), (0, 0, 255)])
+apv = amropick.Vision(detect_model_path="detect.pt",
+                      classify_model_path="classify.pt",
+                      class_names=["Plate1", "Plate2", "Plate3", "Plate4", "Plate5"],
+                      z_offsets=[0.002, 0.008, 0.002, 0.002, 0.002])
 
 robot = Robot()
 
