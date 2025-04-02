@@ -196,7 +196,7 @@ DEF Plate3 Plate3 {
   translation -2.8522288128071763e-19 1.653796942121378e-19 0.8839998037998066
 }
 DEF Plate4 Plate4 {
-  translation -0.34 0.8 0.774
+  translation -0.34 0.8 0.74
 }
 DEF Plate5 Plate5 {
   translation -0.34 0.62 0.74
