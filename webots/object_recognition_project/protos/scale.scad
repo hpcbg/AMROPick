@@ -1,0 +1,1 @@
+scale([0.001,0.001,0.001]) import("Plate3_original.stl");

@@ -1,6 +1,0 @@
-train: ./detect/train
-val: ./detect/val
-
-nc: 1
-
-names: ["Plate"]
