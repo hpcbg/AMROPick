@@ -1,6 +1,0 @@
-train: ./obb/train
-val: ./obb/val
-
-nc: 2
-
-names: ["Plate1", "Plate3"]

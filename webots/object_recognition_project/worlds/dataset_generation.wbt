@@ -1,0 +1,124 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/tables/protos/Table.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Plaster.proto"
+EXTERNPROTO "../protos/Plate1.proto"
+EXTERNPROTO "../protos/Plate2.proto"
+EXTERNPROTO "../protos/Plate3.proto"
+EXTERNPROTO "../protos/Plate4.proto"
+EXTERNPROTO "../protos/Plate5.proto"
+
+WorldInfo {
+  basicTimeStep 16
+}
+Viewpoint {
+  orientation -0.0015325914288977587 0.9999986455684647 -0.0006000206231126031 1.0532554259236413
+  position -1.2515307294266815 0.21073668988253433 3.669512157678028
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+  castShadows FALSE
+}
+RectangleArena {
+  floorSize 5 5
+  floorTileSize 1.5 1.5
+}
+Table {
+}
+Robot {
+  translation 0.03 0 2
+  children [
+    Pose {
+      translation 0.35 0 -0.625
+      children [
+        Shape {
+          appearance PBRAppearance {
+            metalness 0
+          }
+          geometry Box {
+            size 0.05 0.05 1.3
+          }
+        }
+      ]
+    }
+    Pose {
+      translation 0.175 0 0.05
+      children [
+        Shape {
+          appearance PBRAppearance {
+            metalness 0
+          }
+          geometry Box {
+            size 0.4 0.05 0.05
+          }
+        }
+      ]
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0 0 0
+        metalness 0
+      }
+      geometry Box {
+        size 0.05 0.05 0.05
+      }
+    }
+    Camera {
+      rotation 0 1 0 1.5708
+      width 1920
+      height 1440
+      antiAliasing TRUE
+      noise 0.02
+    }
+  ]
+  name "camera"
+  controller "dataset_generator_controller"
+  controllerArgs [
+    "Plate2"
+  ]
+  supervisor TRUE
+}
+Solid {
+  translation 0 0 0.74
+  children [
+    Pose {
+      translation 0 0 0.072
+      children [
+        Shape {
+          appearance Plaster {
+          }
+          geometry Box {
+            size 0.6 0.8 0.144
+          }
+        }
+      ]
+    }
+  ]
+  boundingObject Pose {
+    translation 0 0 0.072
+    children [
+      Box {
+        size 0.6 0.8 0.144
+      }
+    ]
+  }
+}
+DEF Plate1 Plate1 {
+  translation 0 0.82 0.74
+}
+DEF Plate2 Plate2 {
+  translation 0 0.74 0.74
+}
+DEF Plate3 Plate3 {
+  translation 0 0.62 0.74
+}
+DEF Plate4 Plate4 {
+  translation -0.34 0.8 0.774
+}
+DEF Plate5 Plate5 {
+  translation -0.34 0.62 0.74
+}
