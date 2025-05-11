@@ -1,0 +1,176 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/tables/protos/Table.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Plaster.proto"
+IMPORTABLE EXTERNPROTO "../protos/Plate1_bin.proto"
+IMPORTABLE EXTERNPROTO "../protos/Plate2_bin.proto"
+IMPORTABLE EXTERNPROTO "../protos/Plate3_bin.proto"
+IMPORTABLE EXTERNPROTO "../protos/Plate4_bin.proto"
+IMPORTABLE EXTERNPROTO "../protos/Plate5_bin.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/factory/containers/protos/PlasticCrate.proto"
+
+WorldInfo {
+  basicTimeStep 4
+  contactProperties [
+    ContactProperties {
+      material1 "rubber"
+      coulombFriction [
+        -1
+      ]
+      rollingFriction 0.05 0.05 0.05
+      bounce 0
+      bounceVelocity 1
+      maxContactJoints 2
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.010807690190337336 0.9996287446375722 0.025011331972952234 0.6184562169197179
+  position -4.15023470883274 -0.0817703287244739 3.959598327575705
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+  castShadows FALSE
+}
+RectangleArena {
+  floorSize 5 5
+  floorTileSize 1.5 1.5
+}
+Solid {
+  translation 0 0 0.74
+  children [
+    Pose {
+      translation 0 0 0.072
+      children [
+        Shape {
+          appearance Plaster {
+          }
+          geometry Box {
+            size 0.6 0.8 0.1
+          }
+        }
+      ]
+    }
+  ]
+  contactMaterial "rubber"
+  boundingObject Pose {
+    translation 0 0 0.072
+    children [
+      Box {
+        size 0.6 0.8 0.1
+      }
+    ]
+  }
+}
+PlasticCrate {
+  translation 0 0 0.84
+  size 0.6 0.8 0.6
+}
+Table {
+}
+Robot {
+  translation 0.03 0 2
+  children [
+    Pose {
+      translation 0 -0.25 0
+      children [
+        DEF SPOT_1 SpotLight {
+          attenuation 0 0 1
+          beamWidth 0.7
+        }
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0.666667 1 1
+            metalness 0
+          }
+          geometry Box {
+            size 0.05 0.05 0.05
+          }
+        }
+      ]
+    }
+    Pose {
+      translation 0 0.25 0
+      children [
+        DEF SPOT_2 SpotLight {
+          attenuation 0 0 1
+          beamWidth 0.7
+        }
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0.666667 1 1
+            metalness 0
+          }
+          geometry Box {
+            size 0.05 0.05 0.05
+          }
+        }
+      ]
+    }
+    Pose {
+      translation 0 0 0.05
+      children [
+        Shape {
+          appearance PBRAppearance {
+            metalness 0
+          }
+          geometry Box {
+            size 0.05 0.55 0.05
+          }
+        }
+      ]
+    }
+    Pose {
+      translation 0.35 0 -0.625
+      children [
+        Shape {
+          appearance PBRAppearance {
+            metalness 0
+          }
+          geometry Box {
+            size 0.05 0.05 1.3
+          }
+        }
+      ]
+    }
+    Pose {
+      translation 0.175 0 0.05
+      children [
+        Shape {
+          appearance PBRAppearance {
+            metalness 0
+          }
+          geometry Box {
+            size 0.4 0.05 0.05
+          }
+        }
+      ]
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0 0 0
+        metalness 0
+      }
+      geometry Box {
+        size 0.05 0.05 0.05
+      }
+    }
+    Camera {
+      rotation 0 1 0 1.5708
+      width 1920
+      height 1440
+      antiAliasing TRUE
+      noise 0.02
+    }
+  ]
+  name "camera"
+  controller "bin_spotlights_dataset_generator_controller"
+  controllerArgs [
+    "Plate2"
+  ]
+  supervisor TRUE
+}
