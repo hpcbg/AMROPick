@@ -1,0 +1,4 @@
+open3d
+pyrealsense2
+numpy
+opencv-python
