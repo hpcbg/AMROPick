@@ -104,8 +104,8 @@ def main():
     )
 
     T_model_to_object = result.transformation
-    T_model_to_robot = robot_pose @ np.linalg.inv(camera_pose) @ T_model_to_object
-    # T_model_to_robot = T_model_to_object
+    # T_model_to_robot = robot_pose @ np.linalg.inv(camera_pose) @ T_model_to_object
+    T_model_to_robot = T_model_to_object
 
     print("[INFO] Transformation from model to robot base:")
     print(T_model_to_robot)
@@ -124,8 +124,8 @@ def main():
     full_pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, pinhole)
 
     o3d.visualization.draw_geometries(
-        [cut_pcd, model_pcd] + draw_frames(camera_pose, robot_pose)
-        # [full_pcd, model_pcd] + draw_frames(camera_pose, robot_pose)
+        # [cut_pcd, model_pcd] + draw_frames(camera_pose, robot_pose)
+        [full_pcd, model_pcd] + draw_frames(camera_pose, robot_pose)
     )
 
     pipeline.stop()
