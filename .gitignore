@@ -140,3 +140,4 @@ dmypy.json
 
 # Images
 #*.png
+*.ply

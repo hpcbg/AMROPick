@@ -1,0 +1,49 @@
+robot_pose:
+  translation:  # robot base is origin
+    - 0.0
+    - 0.0
+    - 0.0
+  rotation_deg: 
+    - 0.0
+    - 0.0
+    - 0.0
+
+camera_pose:
+  rotation_deg:  # facing downward
+    - 180.0
+    - 0.0
+    - 0.0
+  translation:  # camera is 0.5m above bin, 0.8m offset in X
+    - 0.8
+    - 0.0
+    - 0.5
+
+alignment:
+  icp_threshold: 0.02
+  init_rotation_deg:
+  - 0.0
+  - 0.0
+  - 0.0
+  init_translation:
+  - 0.0
+  - 0.0
+  - 0.0
+  skip_ransac: True
+  visualize: false
+  voxel_size: 0.005
+
+paths:
+  cut_scene_output: cut_scene.ply
+  model_ply: "/data/corob/experiments/AMROPick/open3d-pose-estimation/icp_data/Plate2_topdown.ply"
+  model_weights_path: "/data/corob/experiments/AMROPick/notebooks-2/runs/segment/train6/weights/best.pt"
+
+segmentation:
+  confidence_threshold: 0.6
+valid_classes:
+- Plate 1
+- Plate 2
+- Plate 3
+- Plate 4
+- Plate 5
+
+
