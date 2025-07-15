@@ -32,9 +32,10 @@ def run_alignment(model_path, scene_path, voxel_size, init_translation, init_rot
     print(f"[INFO] Loading scene: {scene_path}")
     scene = o3d.io.read_point_cloud(scene_path)
 
-    # init_trasform = scene.get_center() - model.get_center()
-
-    model.translate(scene.get_center() - model.get_center())
+    initial_translation = scene.get_center() - model.get_center()
+    T_init = np.eye(4)
+    T_init[:3, 3] = initial_translation
+    model.translate(initial_translation)
 
     if visualize:
         print("[INFO] Visualizing initial scene and model...")
@@ -103,10 +104,13 @@ def run_alignment(model_path, scene_path, voxel_size, init_translation, init_rot
     )
 
     print("ICP transformation:\n", result_icp.transformation)
-    model.transform(result_icp.transformation)
+    # model.transform(result_icp.transformation)
 
     print("[INFO] Visualizing final alignment...")
-    draw_registration_result(scene, model, window_name="Final Alignment: Model + Scene")
+    draw_registration_result(scene, model, result_icp.transformation, window_name="Final Alignment: Model + Scene")
+
+    T_total = result_icp.transformation @ T_init
+    result_icp.transformation = T_total  # replace with the full transformation
 
     return result_icp
 
