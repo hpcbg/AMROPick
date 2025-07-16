@@ -8,12 +8,8 @@ def draw_registration_result(scene, model, transformation=None, window_name="Reg
         model = copy.deepcopy(model)
         model.transform(transformation)
 
-    # # Add coordinate frame to show model orientation (default size = 1.0)
-    # # You can adjust size and origin if needed
-    # axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0, 0, 0])
-    # axis.transform(transformation)  # Apply the model's pose
-
     o3d.visualization.draw_geometries([scene, model], window_name=window_name)
+
 
 def compute_fpfh(pcd, voxel_size):
     radius_normal = voxel_size * 2

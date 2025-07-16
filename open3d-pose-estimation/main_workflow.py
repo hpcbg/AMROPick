@@ -83,6 +83,12 @@ def main():
     choice = int(input("Choose object index: "))
     obj_idx = detections[choice][0]
 
+    class_label = detections[choice][1]
+    model_path = config["model_mapping"].get(class_label)
+    if model_path is None:
+        print(f"[ERROR] No model defined for class {class_label}")
+        return
+
     mask = (results.masks.data[obj_idx].cpu().numpy() * 255).astype(np.uint8)
 
 
@@ -93,7 +99,8 @@ def main():
     o3d.io.write_point_cloud(config["paths"]["cut_scene_output"], cut_pcd)
 
     result = run_alignment(
-        model_path=config["paths"]["model_ply"],
+        # model_path=config["paths"]["model_ply"],
+        model_path = model_path,
         scene_path=config["paths"]["cut_scene_output"],
         voxel_size=config["alignment"]["voxel_size"],
         init_translation=config["alignment"]["init_translation"],
@@ -110,7 +117,8 @@ def main():
     print("[INFO] Transformation from model to robot base:")
     print(T_model_to_robot)
 
-    model_pcd = o3d.io.read_point_cloud(config["paths"]["model_ply"])
+    # model_pcd = o3d.io.read_point_cloud(config["paths"]["model_ply"])
+    model_pcd = o3d.io.read_point_cloud(model_path)
     model_pcd.transform(T_model_to_robot)
 
     color_o3d = o3d.geometry.Image(cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB))
