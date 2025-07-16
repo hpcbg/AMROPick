@@ -76,9 +76,12 @@ def main():
     #     print("[ERROR] No valid objects detected.")
     #     return
 
-    results = model(color_image, conf=config["segmentation"]["confidence_threshold"])[0]
+    results = model(color_image,
+        conf=config["segmentation"]["confidence_threshold"],
+        overlap_mask=False)[0]
 
     masks = results.masks.data.cpu().numpy() if results.masks else []
+
 
     classes = results.boxes.cls.cpu().numpy() if results.boxes else []
 
@@ -156,6 +159,19 @@ def main():
         color_intr.fx, color_intr.fy,
         color_intr.ppx, color_intr.ppy)
     full_pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, pinhole)
+
+    # TODO Top down view of the scene
+    # def set_top_down_view(vis):
+    #     ctr = vis.get_view_control()
+    #     ctr.set_front([0, 0, -1])      # look along -Z
+    #     ctr.set_lookat([0, 0, 0])      # focus on origin
+    #     ctr.set_up([0, -1, 0])         # Y axis down
+    #     ctr.set_zoom(0.7)
+
+    # o3d.visualization.draw_geometries_with_key_callbacks(
+    #     [full_pcd, model_pcd] + draw_frames(camera_pose, robot_pose),
+    #     key_to_callback={ord("R"): set_top_down_view}
+    # )
 
     o3d.visualization.draw_geometries(
         # [cut_pcd, model_pcd] + draw_frames(camera_pose, robot_pose)
