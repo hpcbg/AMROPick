@@ -52,14 +52,7 @@ def main():
 
     print("[INFO] Capturing frame...")
     os.makedirs("output_images", exist_ok=True)
-    frames = align.process(pipeline.wait_for_frames())
-
-    # color_frame = frames.get_color_frame()
-    # depth_frame = frames.get_depth_frame()
-    # color_image = np.asanyarray(color_frame.get_data())
-
     depth_frame, color_image, depth_vis = capture_filtered(pipeline, align)
-
     cv2.imwrite(os.path.join("output_images", "captured_rgb.png"), color_image)
 
     print("[INFO] Running segmentation...")
@@ -89,11 +82,20 @@ def main():
         return
 
     vis_image = color_image.copy()
+    colors = [
+        (255, 0, 0), (0, 255, 0), (0, 0, 255),
+        (255, 255, 0), (255, 0, 255), (0, 255, 255),
+        (128, 0, 128)
+    ]
+
     for i, (idx, label) in enumerate(detections):
         mask = filtered_masks[idx]
         mask = cv2.resize(mask, (vis_image.shape[1], vis_image.shape[0]))
-        vis_image[mask > 0.5] = vis_image[mask > 0.5] * 0.5 + np.array([0, 255, 0]) * 0.5
-        cv2.putText(vis_image, f"{i}: {label}", (10, 30 + 30 * i), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+        color = colors[i % len(colors)]
+        blended = vis_image.copy()
+        blended[mask > 0.5] = vis_image[mask > 0.5] * 0.5 + np.array(color) * 0.5
+        vis_image = blended
+        cv2.putText(vis_image, f"{i}: {label}", (10, 30 + 30 * i), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
 
     cv2.imwrite(os.path.join("output_images", "detection_preview.png"), vis_image)
     cv2.imshow("Detected Objects", vis_image)
@@ -113,6 +115,8 @@ def main():
         return
 
     mask = filtered_masks[obj_idx]
+    if mask.dtype != np.uint8:
+        mask = (mask * 255).astype(np.uint8)
     cv2.imwrite(os.path.join("output_images", f"filtered_mask_{obj_idx}.png"), mask)
 
     points, colors = extract_masked_pointcloud(mask, depth_frame, color_image, color_intr)
@@ -142,7 +146,6 @@ def main():
     model_pcd.transform(T_model_to_robot)
 
     color_o3d = o3d.geometry.Image(cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB))
-    # depth_o3d = o3d.geometry.Image(np.asanyarray(depth_frame.get_data()))
     depth_o3d = o3d.geometry.Image(depth_frame)
     rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(
         color_o3d, depth_o3d, depth_scale=1000.0, convert_rgb_to_intensity=False, depth_trunc=3.0)
