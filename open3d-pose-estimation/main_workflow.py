@@ -64,17 +64,43 @@ def main():
     color_image = np.asanyarray(color_frame.get_data())
 
     print("[INFO] Running segmentation...")
+    # results = model(color_image, conf=config["segmentation"]["confidence_threshold"])[0]
+
+    # detections = []
+    # for i, c in enumerate(results.boxes.cls.tolist()):
+    #     label = results.names[int(c)]
+    #     if label in config["valid_classes"]:
+    #         detections.append((i, label))
+
+    # if not detections:
+    #     print("[ERROR] No valid objects detected.")
+    #     return
+
     results = model(color_image, conf=config["segmentation"]["confidence_threshold"])[0]
 
-    detections = []
-    for i, c in enumerate(results.boxes.cls.tolist()):
-        label = results.names[int(c)]
-        if label in config["valid_classes"]:
-            detections.append((i, label))
+    masks = results.masks.data.cpu().numpy() if results.masks else []
+
+    classes = results.boxes.cls.cpu().numpy() if results.boxes else []
+
+    detections = [(i, results.names[int(cls)]) for i, cls in enumerate(classes)
+                if results.names[int(cls)] in config["valid_classes"]]
 
     if not detections:
         print("[ERROR] No valid objects detected.")
         return
+
+    vis_image = color_image.copy()
+    for i, (idx, label) in enumerate(detections):
+        mask = masks[idx]
+        mask = cv2.resize(mask, (vis_image.shape[1], vis_image.shape[0]))  # Fix shape mismatch
+        vis_image[mask > 0.5] = vis_image[mask > 0.5] * 0.5 + np.array([0, 255, 0]) * 0.5
+        cv2.putText(vis_image, f"{i}: {label}", (10, 30 + 30 * i), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+
+
+    cv2.imshow("Detected Objects", vis_image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 
     print("Detected valid objects:")
     for i, (idx, label) in enumerate(detections):
