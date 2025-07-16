@@ -3,9 +3,8 @@ import numpy as np
 import open3d as o3d
 import pyrealsense2 as rs
 import yaml
-# import torch
 from ultralytics import YOLO
-from utils import extract_masked_pointcloud
+from utils import extract_masked_pointcloud, capture_filtered
 from realsense_utils import setup_pipeline
 from run_icp_alignment import run_alignment
 import os
@@ -44,7 +43,6 @@ def draw_frames(camera_pose=np.eye(4), robot_pose=np.eye(4)):
 def main():
     config = load_config()
 
-    model = YOLO(config["paths"]["model_weights_path"])
     pipeline, align, profile = setup_pipeline()
     color_profile = profile.get_stream(rs.stream.color).as_video_stream_profile()
     color_intr = color_profile.get_intrinsics()
@@ -55,12 +53,17 @@ def main():
     print("[INFO] Capturing frame...")
     os.makedirs("output_images", exist_ok=True)
     frames = align.process(pipeline.wait_for_frames())
-    color_frame = frames.get_color_frame()
-    depth_frame = frames.get_depth_frame()
-    color_image = np.asanyarray(color_frame.get_data())
+
+    # color_frame = frames.get_color_frame()
+    # depth_frame = frames.get_depth_frame()
+    # color_image = np.asanyarray(color_frame.get_data())
+
+    depth_frame, color_image, depth_vis = capture_filtered(pipeline, align)
+
     cv2.imwrite(os.path.join("output_images", "captured_rgb.png"), color_image)
 
     print("[INFO] Running segmentation...")
+    model = YOLO(config["paths"]["model_weights_path"])
     results = model(color_image, conf=config["segmentation"]["confidence_threshold"], overlap_mask=False)[0]
 
     masks = results.masks.data.cpu().numpy() if results.masks else []
@@ -139,7 +142,8 @@ def main():
     model_pcd.transform(T_model_to_robot)
 
     color_o3d = o3d.geometry.Image(cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB))
-    depth_o3d = o3d.geometry.Image(np.asanyarray(depth_frame.get_data()))
+    # depth_o3d = o3d.geometry.Image(np.asanyarray(depth_frame.get_data()))
+    depth_o3d = o3d.geometry.Image(depth_frame)
     rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(
         color_o3d, depth_o3d, depth_scale=1000.0, convert_rgb_to_intensity=False, depth_trunc=3.0)
     pinhole = o3d.camera.PinholeCameraIntrinsic(
