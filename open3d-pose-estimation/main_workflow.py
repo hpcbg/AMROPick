@@ -8,6 +8,7 @@ from ultralytics import YOLO
 from utils import extract_masked_pointcloud
 from realsense_utils import setup_pipeline
 from run_icp_alignment import run_alignment
+import os
 
 def load_config(path="config.yaml"):
     with open(path, "r") as f:
@@ -22,7 +23,6 @@ def get_camera_pose(config):
     T[:3, 3:] = t
     return T
 
-
 def get_robot_pose(config):
     T = np.eye(4)
     T[:3, 3] = np.array(config["robot_pose"]["translation"])
@@ -32,24 +32,19 @@ def draw_frames(camera_pose=np.eye(4), robot_pose=np.eye(4)):
     def labeled_coordinate_frame(name, transform, size=0.1, color=[1, 0, 0]):
         frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=size)
         frame.transform(transform)
-
-        # Use a sphere to mark and distinguish the label
         marker = o3d.geometry.TriangleMesh.create_sphere(radius=size * 0.1)
         marker.paint_uniform_color(color)
         marker.translate(transform[:3, 3] + np.array([0, 0, size * 1.5]))
-
         return [frame, marker]
 
-    camera_frame = labeled_coordinate_frame("Camera", camera_pose, color=[0, 1, 0])  # green
-    robot_frame = labeled_coordinate_frame("Robot", robot_pose, color=[0, 0, 1])    # blue
-
+    camera_frame = labeled_coordinate_frame("Camera", camera_pose, color=[0, 1, 0])
+    robot_frame = labeled_coordinate_frame("Robot", robot_pose, color=[0, 0, 1])
     return camera_frame + robot_frame
 
 def main():
     config = load_config()
 
     model = YOLO(config["paths"]["model_weights_path"])
-
     pipeline, align, profile = setup_pipeline()
     color_profile = profile.get_stream(rs.stream.color).as_video_stream_profile()
     color_intr = color_profile.get_intrinsics()
@@ -58,35 +53,33 @@ def main():
     robot_pose = np.eye(4)
 
     print("[INFO] Capturing frame...")
+    os.makedirs("output_images", exist_ok=True)
     frames = align.process(pipeline.wait_for_frames())
     color_frame = frames.get_color_frame()
     depth_frame = frames.get_depth_frame()
     color_image = np.asanyarray(color_frame.get_data())
+    cv2.imwrite(os.path.join("output_images", "captured_rgb.png"), color_image)
 
     print("[INFO] Running segmentation...")
-    # results = model(color_image, conf=config["segmentation"]["confidence_threshold"])[0]
-
-    # detections = []
-    # for i, c in enumerate(results.boxes.cls.tolist()):
-    #     label = results.names[int(c)]
-    #     if label in config["valid_classes"]:
-    #         detections.append((i, label))
-
-    # if not detections:
-    #     print("[ERROR] No valid objects detected.")
-    #     return
-
-    results = model(color_image,
-        conf=config["segmentation"]["confidence_threshold"],
-        overlap_mask=False)[0]
+    results = model(color_image, conf=config["segmentation"]["confidence_threshold"], overlap_mask=False)[0]
 
     masks = results.masks.data.cpu().numpy() if results.masks else []
-
+    filtered_masks = []
+    for i in range(len(masks)):
+        mask = (masks[i] * 255).astype(np.uint8)
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if contours:
+            largest = max(contours, key=cv2.contourArea)
+            filtered = np.zeros_like(mask)
+            cv2.drawContours(filtered, [largest], -1, 255, cv2.FILLED)
+            filtered_masks.append(filtered)
+        else:
+            filtered_masks.append(mask)
+    filtered_masks = np.array(filtered_masks)
 
     classes = results.boxes.cls.cpu().numpy() if results.boxes else []
-
     detections = [(i, results.names[int(cls)]) for i, cls in enumerate(classes)
-                if results.names[int(cls)] in config["valid_classes"]]
+                  if results.names[int(cls)] in config["valid_classes"]]
 
     if not detections:
         print("[ERROR] No valid objects detected.")
@@ -94,16 +87,15 @@ def main():
 
     vis_image = color_image.copy()
     for i, (idx, label) in enumerate(detections):
-        mask = masks[idx]
-        mask = cv2.resize(mask, (vis_image.shape[1], vis_image.shape[0]))  # Fix shape mismatch
+        mask = filtered_masks[idx]
+        mask = cv2.resize(mask, (vis_image.shape[1], vis_image.shape[0]))
         vis_image[mask > 0.5] = vis_image[mask > 0.5] * 0.5 + np.array([0, 255, 0]) * 0.5
         cv2.putText(vis_image, f"{i}: {label}", (10, 30 + 30 * i), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
 
-
+    cv2.imwrite(os.path.join("output_images", "detection_preview.png"), vis_image)
     cv2.imshow("Detected Objects", vis_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
 
     print("Detected valid objects:")
     for i, (idx, label) in enumerate(detections):
@@ -111,15 +103,14 @@ def main():
 
     choice = int(input("Choose object index: "))
     obj_idx = detections[choice][0]
-
     class_label = detections[choice][1]
     model_path = config["model_mapping"].get(class_label)
     if model_path is None:
         print(f"[ERROR] No model defined for class {class_label}")
         return
 
-    mask = (results.masks.data[obj_idx].cpu().numpy() * 255).astype(np.uint8)
-
+    mask = filtered_masks[obj_idx]
+    cv2.imwrite(os.path.join("output_images", f"filtered_mask_{obj_idx}.png"), mask)
 
     points, colors = extract_masked_pointcloud(mask, depth_frame, color_image, color_intr)
     cut_pcd = o3d.geometry.PointCloud()
@@ -128,8 +119,7 @@ def main():
     o3d.io.write_point_cloud(config["paths"]["cut_scene_output"], cut_pcd)
 
     result = run_alignment(
-        # model_path=config["paths"]["model_ply"],
-        model_path = model_path,
+        model_path=model_path,
         scene_path=config["paths"]["cut_scene_output"],
         voxel_size=config["alignment"]["voxel_size"],
         init_translation=config["alignment"]["init_translation"],
@@ -140,13 +130,11 @@ def main():
     )
 
     T_model_to_object = result.transformation
-    # T_model_to_robot = robot_pose @ np.linalg.inv(camera_pose) @ T_model_to_object
     T_model_to_robot = T_model_to_object
 
     print("[INFO] Transformation from model to robot base:")
     print(T_model_to_robot)
 
-    # model_pcd = o3d.io.read_point_cloud(config["paths"]["model_ply"])
     model_pcd = o3d.io.read_point_cloud(model_path)
     model_pcd.transform(T_model_to_robot)
 
@@ -160,21 +148,7 @@ def main():
         color_intr.ppx, color_intr.ppy)
     full_pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, pinhole)
 
-    # TODO Top down view of the scene
-    # def set_top_down_view(vis):
-    #     ctr = vis.get_view_control()
-    #     ctr.set_front([0, 0, -1])      # look along -Z
-    #     ctr.set_lookat([0, 0, 0])      # focus on origin
-    #     ctr.set_up([0, -1, 0])         # Y axis down
-    #     ctr.set_zoom(0.7)
-
-    # o3d.visualization.draw_geometries_with_key_callbacks(
-    #     [full_pcd, model_pcd] + draw_frames(camera_pose, robot_pose),
-    #     key_to_callback={ord("R"): set_top_down_view}
-    # )
-
     o3d.visualization.draw_geometries(
-        # [cut_pcd, model_pcd] + draw_frames(camera_pose, robot_pose)
         [full_pcd, model_pcd] + draw_frames(camera_pose, robot_pose)
     )
 
