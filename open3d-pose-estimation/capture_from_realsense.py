@@ -33,6 +33,10 @@ def main():
 
     while True:
         print("[INFO] Press 's' to save, 'q' to quit...")
+        print("[INFO] Warming up sensor...")
+        for _ in range(30):
+            pipeline.wait_for_frames()
+
         frames = align.process(pipeline.wait_for_frames())
 
         color_frame = frames.get_color_frame()

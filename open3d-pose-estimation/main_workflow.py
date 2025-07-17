@@ -54,6 +54,7 @@ def main():
     os.makedirs("output_images", exist_ok=True)
     depth_frame, color_image, depth_vis = capture_filtered(pipeline, align)
     cv2.imwrite(os.path.join("output_images", "captured_rgb.png"), color_image)
+    cv2.imwrite(os.path.join("output_images", "filtered_depth.png"), depth_vis)
 
     print("[INFO] Running segmentation...")
     model = YOLO(config["paths"]["model_weights_path"])

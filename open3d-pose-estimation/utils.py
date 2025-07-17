@@ -51,7 +51,13 @@ def capture_filtered(pipeline, align):
     depth = aligned_frames.get_depth_frame()
     color_frame = aligned_frames.get_color_frame()
 
-    for _ in range(10):
+    accumulated_depth = None
+    num_frames = 10
+
+    for _ in range(num_frames):
+        depth = aligned_frames.get_depth_frame()
+
+        # Apply filters
         depth = decimation.process(depth)
         depth = depth_to_disparity.process(depth)
         depth = spatial.process(depth)
@@ -59,10 +65,23 @@ def capture_filtered(pipeline, align):
         depth = disparity_to_depth.process(depth)
         depth = hole_filling.process(depth)
 
-    colorized_depth = np.asanyarray(colorizer.colorize(depth).get_data())
-    plt.imshow(colorized_depth)
-    plt.title("Filtered Depth")
-    plt.axis('off')
-    plt.show()
+        # Convert to numpy
+        depth_np = np.asanyarray(depth.get_data()).astype(np.float32)
 
-    return np.asanyarray(depth.get_data()), np.asanyarray(color_frame.get_data()), colorized_depth
+        if accumulated_depth is None:
+            accumulated_depth = depth_np
+        else:
+            accumulated_depth += depth_np
+
+    # Average
+    averaged_depth = (accumulated_depth / num_frames).astype(np.uint16)
+
+    # colorized_depth = np.asanyarray(colorizer.colorize(depth).get_data())
+    normalized = cv2.normalize(averaged_depth, None, 0, 255, cv2.NORM_MINMAX)
+    normalized = normalized.astype(np.uint8)
+    colorized_depth = cv2.applyColorMap(normalized, cv2.COLORMAP_JET)
+    # colorized_depth = np.asanyarray(colorizer.colorize(averaged_depth).get_data())
+
+    # return np.asanyarray(depth.get_data()), np.asanyarray(color_frame.get_data()), colorized_depth
+    return np.asanyarray(averaged_depth), np.asanyarray(color_frame.get_data()), colorized_depth
+
