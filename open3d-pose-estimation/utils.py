@@ -29,18 +29,7 @@ def generate_dummy_mask(image_shape, radius=100):
     return mask
 
 
-def capture_filtered(pipeline, align):
-    # Filters
-    decimation = rs.decimation_filter()
-    decimation.set_option(rs.option.filter_magnitude, 1)  # <-- keep depth resolution unchanged
-
-    spatial = rs.spatial_filter()
-    temporal = rs.temporal_filter()
-    hole_filling = rs.hole_filling_filter()
-    depth_to_disparity = rs.disparity_transform(True)
-    disparity_to_depth = rs.disparity_transform(False)
-    colorizer = rs.colorizer()
-
+def capture_filtered(pipeline, align, n_frames=5, apply_average_filter=False):
     print("[INFO] Warming up sensor...")
     for _ in range(30):
         pipeline.wait_for_frames()
@@ -48,40 +37,60 @@ def capture_filtered(pipeline, align):
     # Capture and align
     frames = pipeline.wait_for_frames()
     aligned_frames = align.process(frames)
-    depth = aligned_frames.get_depth_frame()
+    depth_frame = aligned_frames.get_depth_frame()
     color_frame = aligned_frames.get_color_frame()
 
-    accumulated_depth = None
-    num_frames = 10
+    # Initialize RealSense filters
+    spatial = rs.spatial_filter()
+    temporal = rs.temporal_filter()
+    hole_filling = rs.hole_filling_filter()
+    depth_to_disparity = rs.disparity_transform(True)
+    disparity_to_depth = rs.disparity_transform(False)
+    colorizer = rs.colorizer()
 
-    for _ in range(num_frames):
-        depth = aligned_frames.get_depth_frame()
+    if apply_average_filter:
+        # Accumulators
+        depth_accum = None
+        color_accum = None
 
-        # Apply filters
-        depth = decimation.process(depth)
-        depth = depth_to_disparity.process(depth)
+    for _ in range(n_frames):
+        depth_frame = aligned_frames.get_depth_frame()
+        color_frame = aligned_frames.get_color_frame()
+        color_image = np.asanyarray(color_frame.get_data())
+        
+        # Apply filters to depth
+        depth = depth_to_disparity.process(depth_frame)
         depth = spatial.process(depth)
         depth = temporal.process(depth)
         depth = disparity_to_depth.process(depth)
         depth = hole_filling.process(depth)
 
-        # Convert to numpy
-        depth_np = np.asanyarray(depth.get_data()).astype(np.float32)
+        if apply_average_filter:
+            depth_np = np.asanyarray(depth.get_data()).astype(np.float32)
 
-        if accumulated_depth is None:
-            accumulated_depth = depth_np
-        else:
-            accumulated_depth += depth_np
+            if depth_accum is None:
+                depth_accum = depth_np
+                color_accum = color_image.astype(np.float32)
+            else:
+                depth_accum += depth_np
+                color_accum += color_image.astype(np.float32)
 
-    # Average
-    averaged_depth = (accumulated_depth / num_frames).astype(np.uint16)
+    if apply_average_filter:
+        # Average over frames
+        averaged_depth = (depth_accum / n_frames).astype(np.uint16)
+        averaged_color = (color_accum / n_frames).astype(np.uint8)
 
-    # colorized_depth = np.asanyarray(colorizer.colorize(depth).get_data())
-    normalized = cv2.normalize(averaged_depth, None, 0, 255, cv2.NORM_MINMAX)
-    normalized = normalized.astype(np.uint8)
-    colorized_depth = cv2.applyColorMap(normalized, cv2.COLORMAP_JET)
-    # colorized_depth = np.asanyarray(colorizer.colorize(averaged_depth).get_data())
+        # Colorized depth for visualization (optional)
+        try:
+            colorized_depth = np.asanyarray(colorizer.colorize(depth).get_data())
+        except Exception:
+            colorized_depth = np.zeros_like(averaged_color)
 
-    # return np.asanyarray(depth.get_data()), np.asanyarray(color_frame.get_data()), colorized_depth
-    return np.asanyarray(averaged_depth), np.asanyarray(color_frame.get_data()), colorized_depth
+        colorized_depth = np.asanyarray(colorizer.colorize(depth).get_data())
+
+        return averaged_depth, averaged_color, colorized_depth
+
+    colorized_depth = np.asanyarray(colorizer.colorize(depth).get_data())    
+
+    return np.asanyarray(depth.get_data()), np.asanyarray(color_frame.get_data()), colorized_depth
 

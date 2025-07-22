@@ -58,7 +58,10 @@ def main():
 
     print("[INFO] Running segmentation...")
     model = YOLO(config["paths"]["model_weights_path"])
-    results = model(color_image, conf=config["segmentation"]["confidence_threshold"], overlap_mask=False)[0]
+    results = model(color_image,
+        conf=config["segmentation"]["confidence_threshold"],
+        overlap_mask=False,
+        retina_masks=True)[0]
 
     masks = results.masks.data.cpu().numpy() if results.masks else []
     filtered_masks = []
@@ -157,7 +160,8 @@ def main():
     full_pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, pinhole)
 
     o3d.visualization.draw_geometries(
-        [full_pcd, model_pcd] + draw_frames(camera_pose, robot_pose)
+        # [full_pcd, model_pcd] + draw_frames(camera_pose, robot_pose)
+        [full_pcd, model_pcd]
     )
 
     pipeline.stop()
