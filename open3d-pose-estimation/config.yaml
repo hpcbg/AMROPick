@@ -35,7 +35,7 @@ alignment:
 paths:
   cut_scene_output: cut_scene.ply
   # model_ply: "/data/corob/experiments/AMROPick/open3d-pose-estimation/icp_data/Plate2_topdown.ply"
-  model_weights_path: "/data/corob/experiments/AMROPick/notebooks-2/runs/segment/train8/weights/best.pt"
+  model_weights_path: "/data/corob/experiments/AMROPick/notebooks/runs/segment/train8/weights/best.pt"
 
 model_mapping:
   Plate 1: /data/corob/experiments/AMROPick/open3d-pose-estimation/icp_data/Plate1_topdown.ply
