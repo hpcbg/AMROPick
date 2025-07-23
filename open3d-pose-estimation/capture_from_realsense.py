@@ -4,7 +4,7 @@ import numpy as np
 import open3d as o3d
 import argparse
 
-from utils import extract_masked_pointcloud, generate_dummy_mask
+from utils import extract_masked_pointcloud
 from realsense_utils import setup_pipeline
 import pyrealsense2 as rs
 
@@ -14,7 +14,7 @@ def main():
     parser.add_argument('--cut', action='store_true')
     parser.add_argument('--save-full', action='store_true')
     parser.add_argument('--save-cut', action='store_true')
-    parser.add_argument('--output', type=str, default="output", help="Output directory")
+    parser.add_argument('--output', type=str, default="captured_dataset", help="Output directory")
     parser.add_argument('--mask-path', type=str, help="Path to mask image")
     args = parser.parse_args()
 

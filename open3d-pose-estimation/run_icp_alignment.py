@@ -2,6 +2,7 @@ import open3d as o3d
 import numpy as np
 import argparse
 import copy
+from utils import load_config
 
 def draw_registration_result(scene, model, transformation=None, window_name="Registration"):
     if transformation is not None:
@@ -22,7 +23,16 @@ def compute_fpfh(pcd, voxel_size):
         o3d.geometry.KDTreeSearchParamHybrid(radius=radius_feature, max_nn=100)
     )
 
-def run_alignment(model_path, scene_path, voxel_size, init_translation, init_rotation, visualize, skip_ransac, icp_threshold):
+def run_alignment(model_path, scene_path):
+    config = load_config()
+
+    voxel_size=config["alignment"]["voxel_size"]
+    init_translation=config["alignment"]["init_translation"]
+    init_rotation=config["alignment"]["init_rotation_deg"]
+    visualize=config["alignment"]["visualize"]
+    skip_ransac=config["alignment"]["skip_ransac"]
+    icp_threshold=config["alignment"]["icp_threshold"]
+    
     print(f"[INFO] Loading model: {model_path}")
     model = o3d.io.read_point_cloud(model_path)
     print(f"[INFO] Loading scene: {scene_path}")

@@ -19,7 +19,7 @@ camera_pose:
     - 0.5
 
 alignment:
-  icp_threshold: 0.02
+  icp_threshold: 0.03
   init_rotation_deg:
   - 0.0
   - 0.0
@@ -33,16 +33,16 @@ alignment:
   voxel_size: 0.004
 
 paths:
-  cut_scene_output: cut_scene.ply
-  # model_ply: "/data/corob/experiments/AMROPick/open3d-pose-estimation/icp_data/Plate2_topdown.ply"
-  model_weights_path: "/data/corob/experiments/AMROPick/notebooks/runs/segment/train8/weights/best.pt"
+  intermediate_results: intermediate_results
+  cut_scene_output: intermediate_results/cut_scene.ply
+  model_weights_path: ../notebooks/runs/segment/train8/weights/best.pt
 
 model_mapping:
-  Plate 1: /data/corob/experiments/AMROPick/open3d-pose-estimation/icp_data/Plate1_topdown.ply
-  Plate 2: /data/corob/experiments/AMROPick/open3d-pose-estimation/icp_data/Plate2_topdown.ply
-  Plate 3: /data/corob/experiments/AMROPick/open3d-pose-estimation/icp_data/Plate3_topdown.ply
-  Plate 4: /data/corob/experiments/AMROPick/open3d-pose-estimation/icp_data/Plate4_topdown.ply
-  Plate 5: /data/corob/experiments/AMROPick/open3d-pose-estimation/icp_data/Plate5_topdown.ply
+  Plate 1: object_models/Plate1_topdown.ply
+  Plate 2: object_models/Plate2_topdown.ply
+  Plate 3: object_models/Plate3_topdown.ply
+  Plate 4: object_models/Plate4_topdown.ply
+  Plate 5: object_models/Plate5_topdown.ply
 
 segmentation:
   confidence_threshold: 0.6
