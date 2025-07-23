@@ -162,3 +162,64 @@ def draw_frames(camera_pose=np.eye(4), robot_pose=np.eye(4)):
     camera_frame = labeled_coordinate_frame("Camera", camera_pose, color=[0, 1, 0])
     robot_frame = labeled_coordinate_frame("Robot", robot_pose, color=[0, 0, 1])
     return camera_frame + robot_frame
+
+
+def select_grasp_point_from_model(model_path, visualize_all=False, resampling=5000, diameter_rescale=100):
+    import open3d as o3d
+    import numpy as np
+
+    mesh = o3d.io.read_triangle_mesh(model_path)
+
+    if len(mesh.triangles) == 0:
+        print("[WARN] Model has no triangles. Trying to read as point cloud.")
+        pcd = o3d.io.read_point_cloud(model_path)
+    else:
+        mesh.compute_vertex_normals()
+        pcd = mesh.sample_points_poisson_disk(resampling)
+        # mesh.compute_vertex_normals()
+        # mesh.orient_triangles()
+        # mesh.orient_normals_consistent_tangent_plane(100)
+        # pcd = mesh.sample_points_poisson_disk(resampling)
+        # pcd.estimate_normals()
+        # pcd.orient_normals_consistent_tangent_plane(100)
+
+    if visualize_all:
+        print(f"vis: {visualize_all}")
+        o3d.visualization.draw_geometries([pcd], window_name="Resampled point cloud")
+
+    diameter = np.linalg.norm(pcd.get_max_bound() - pcd.get_min_bound())
+    camera = [0, 0, diameter]
+    diameter_scaled = diameter * diameter_rescale
+    _, pt_map = pcd.hidden_point_removal(camera, diameter_scaled)
+    pcd_onesided = pcd.select_by_index(pt_map)
+
+    if visualize_all:
+        o3d.visualization.draw_geometries([pcd_onesided], window_name="Visible surface")
+
+    print("Pick grasp point(s) with Shift + Left Click, then close the window.")
+    vis = o3d.visualization.VisualizerWithEditing()
+    vis.create_window()
+    vis.add_geometry(pcd_onesided)
+    vis.run()
+    picked_indices = vis.get_picked_points()
+    vis.destroy_window()
+
+    points = np.asarray(pcd_onesided.points)
+    normals = np.asarray(pcd_onesided.normals)
+    return points[picked_indices], normals[picked_indices]
+
+def create_grasp_frame(grasp_point, grasp_normal, size=0.07):
+    import open3d as o3d
+    import numpy as np
+
+    z_axis = -grasp_normal / np.linalg.norm(grasp_normal)
+    tmp = np.array([1, 0, 0]) if abs(z_axis[0]) < 0.9 else np.array([0, 1, 0])
+    x_axis = np.cross(tmp, z_axis)
+    x_axis /= np.linalg.norm(x_axis)
+    y_axis = np.cross(z_axis, x_axis)
+    R = np.column_stack((x_axis, y_axis, z_axis))
+
+    T = np.eye(4)
+    T[:3, :3] = R
+    T[:3, 3] = grasp_point
+    return o3d.geometry.TriangleMesh.create_coordinate_frame(size=size).transform(T)

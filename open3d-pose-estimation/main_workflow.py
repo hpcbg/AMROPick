@@ -12,7 +12,9 @@ from utils import (
     load_config,
     get_camera_pose,
     get_robot_pose,
-    draw_frames
+    draw_frames,
+    select_grasp_point_from_model, 
+    create_grasp_frame
 )
 from realsense_utils import setup_pipeline
 from run_icp_alignment import run_alignment
@@ -91,6 +93,22 @@ def main():
     o3d.visualization.draw_geometries(
         [full_pcd, model_pcd] + draw_frames(get_camera_pose(config), get_robot_pose(config))
         # [full_pcd, model_pcd]
+    )
+
+    # Example: Select grasp point on aligned model
+    grasp_pts, grasp_normals = select_grasp_point_from_model(model_path)
+    # grasp_frames = [create_grasp_frame(p, n) for p, n in zip(grasp_pts, grasp_normals)]
+
+    # Transform grasp points to robot frame
+    grasp_pts_world = [(T_model_to_robot[:3, :3] @ p + T_model_to_robot[:3, 3]) for p in grasp_pts]
+    grasp_normals_world = [(T_model_to_robot[:3, :3] @ n) for n in grasp_normals]
+    grasp_frames = [create_grasp_frame(p, n) for p, n in zip(grasp_pts_world, grasp_normals_world)]
+
+    # Visualize with grasp frames
+    o3d.visualization.draw_geometries(
+        [full_pcd, model_pcd]
+        + grasp_frames
+        + draw_frames(get_camera_pose(config), get_robot_pose(config))
     )
 
     pipeline.stop()
