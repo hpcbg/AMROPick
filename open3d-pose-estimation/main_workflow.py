@@ -74,6 +74,7 @@ def main():
     cut_pcd.colors = o3d.utility.Vector3dVector(colors)
     o3d.io.write_point_cloud(config["paths"]["cut_scene_output"], cut_pcd)
 
+    print("[INFO] Alignment:")
     alignment = run_alignment(model_path=model_path, scene_path=config["paths"]["cut_scene_output"])
 
     T_model_to_object = alignment.transformation

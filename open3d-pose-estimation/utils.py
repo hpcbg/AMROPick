@@ -40,7 +40,7 @@ def extract_masked_pointcloud(mask, depth_frame, color_image, color_intr):
         raise RuntimeError("No valid 3D points extracted.")
     return np.array(points), np.array(colors)
 
-def capture_filtered(pipeline, align, n_frames=5, apply_average_filter=False):
+def capture_filtered(pipeline, align, n_frames=5, apply_average=False, use_disparity=False):
     print("[INFO] Warming up sensor...")
     for _ in range(30):
         pipeline.wait_for_frames()
@@ -52,10 +52,10 @@ def capture_filtered(pipeline, align, n_frames=5, apply_average_filter=False):
     temporal = rs.temporal_filter()
     hole_filling = rs.hole_filling_filter()
     colorizer = rs.colorizer()
-    depth_to_disparity = rs.disparity_transform()
-    disparity_to_depth = rs.disparity_transform()
+    depth_to_disparity = rs.disparity_transform(True)
+    disparity_to_depth = rs.disparity_transform(False)
 
-    if apply_average_filter:
+    if apply_average:
         depth_accum = None
         color_accum = None
 
@@ -64,13 +64,15 @@ def capture_filtered(pipeline, align, n_frames=5, apply_average_filter=False):
         color_frame = aligned_frames.get_color_frame()
         color_image = np.asanyarray(color_frame.get_data())
 
-        # depth_frame = depth_to_disparity.process(depth_frame)
+        if use_disparity:
+            depth_frame = depth_to_disparity.process(depth_frame)
         depth_frame = spatial.process(depth_frame)
         depth_frame = temporal.process(depth_frame)
-        # depth_frame = disparity_to_depth.process(depth_frame)
+        if use_disparity:
+            depth_frame = disparity_to_depth.process(depth_frame)
         depth_frame = hole_filling.process(depth_frame)
 
-        if apply_average_filter:
+        if apply_average:
             depth_np = np.asanyarray(depth_frame.get_data()).astype(np.float32)
             if depth_accum is None:
                 depth_accum = depth_np
@@ -79,7 +81,7 @@ def capture_filtered(pipeline, align, n_frames=5, apply_average_filter=False):
                 depth_accum += depth_np
                 color_accum += color_image.astype(np.float32)
 
-    if apply_average_filter:
+    if apply_average:
         averaged_depth = (depth_accum / n_frames).astype(np.uint16)
         averaged_color = (color_accum / n_frames).astype(np.uint8)
         try:
