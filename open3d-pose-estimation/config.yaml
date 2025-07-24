@@ -34,15 +34,14 @@ alignment:
 
 paths:
   intermediate_results: intermediate_results
-  cut_scene_output: intermediate_results/cut_scene.ply
   model_weights_path: ../notebooks/runs/segment/train8/weights/best.pt
 
 model_mapping:
-  Plate 1: object_models/Plate1_topdown.ply
-  Plate 2: object_models/Plate2_topdown.ply
-  Plate 3: object_models/Plate3_topdown.ply
-  Plate 4: object_models/Plate4_topdown.ply
-  Plate 5: object_models/Plate5_topdown.ply
+  Plate 1: object_models/Plate1.ply
+  Plate 2: object_models/Plate2.ply
+  Plate 3: object_models/Plate3.ply
+  Plate 4: object_models/Plate4.ply
+  Plate 5: object_models/Plate5.ply
 
 segmentation:
   confidence_threshold: 0.6

@@ -74,10 +74,11 @@ def main():
     cut_pcd = o3d.geometry.PointCloud()
     cut_pcd.points = o3d.utility.Vector3dVector(points)
     cut_pcd.colors = o3d.utility.Vector3dVector(colors)
-    o3d.io.write_point_cloud(config["paths"]["cut_scene_output"], cut_pcd)
+    cut_scene_path = os.path.join(intermediate_results, "cut_scene.ply")
+    o3d.io.write_point_cloud(cut_scene_path, cut_pcd)
 
     print("[INFO] Alignment:")
-    alignment = run_alignment(model_path=model_path, scene_path=config["paths"]["cut_scene_output"])
+    alignment = run_alignment(model_path=model_path, scene_path=cut_scene_path)
 
     T_model_to_object = alignment.transformation
     T_model_to_robot = T_model_to_object
