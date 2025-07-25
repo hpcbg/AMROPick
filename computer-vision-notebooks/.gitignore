@@ -48,3 +48,8 @@ runs
 # IPython
 profile_default
 ipython_config.py
+
+# Images
+*.png
+*.img
+*.ply

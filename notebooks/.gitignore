@@ -142,4 +142,5 @@ dmypy.json
 yolo*
 
 # Images
-#*.png
+*.png
+*.img
