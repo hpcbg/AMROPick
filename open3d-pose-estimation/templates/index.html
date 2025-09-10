@@ -1,0 +1,51 @@
+<!-- templates/index.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>AMROPick – Detect by Part ID</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style> body{padding:24px} .mono{font-family:ui-monospace,Consolas,monospace} </style>
+</head>
+<body>
+<div class="container" style="max-width:760px">
+  <h1 class="mb-4">AMROPick – Detect by Part ID</h1>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-warning">
+        {% for m in messages %}<div class="mono">{{ m }}</div>{% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" action="{{ url_for('detect') }}" class="row g-3">
+    <div class="col-4">
+      <label class="form-label">Part ID</label>
+      <input name="part_id" class="form-control" value="{{ part_id or '' }}" required>
+    </div>
+    <div class="col-8">
+      <label class="form-label">Model file path (.ply/.stl) (optional)</label>
+      <input name="model_path" class="form-control mono" value="{{ model_path or '' }}">
+    </div>
+    <div class="col-12">
+      <button class="btn btn-primary">Detect</button>
+    </div>
+  </form>
+
+  {% if result %}
+  <hr>
+  <h4>Result</h4>
+  <div class="mono">
+    <div>Camera (Tx, Ty, Tz, Rx, Ry, Rz): {{ "%.3f"|format(result.pose_camera[0]) }}, {{ "%.3f"|format(result.pose_camera[1]) }}, {{ "%.3f"|format(result.pose_camera[2]) }}, {{ "%.2f"|format(result.pose_camera[3]) }}, {{ "%.2f"|format(result.pose_camera[4]) }}, {{ "%.2f"|format(result.pose_camera[5]) }}</div>
+    <div>Robot  (Tx, Ty, Tz, Rx, Ry, Rz): {{ "%.3f"|format(result.pose_robot[0]) }}, {{ "%.3f"|format(result.pose_robot[1]) }}, {{ "%.3f"|format(result.pose_robot[2]) }}, {{ "%.2f"|format(result.pose_robot[3]) }}, {{ "%.2f"|format(result.pose_robot[4]) }}, {{ "%.2f"|format(result.pose_robot[5]) }}</div>
+  </div>
+
+  <div class="mt-3">
+    <div class="fw-semibold mb-1">Aligned model over scene</div>
+    <img class="img-fluid border" src="{{ url_for('files', filepath=result.overlay_png) }}" alt="Aligned overlay">
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AMROPick REST GUI</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    input, button { margin: 5px 0; padding: 6px; }
+    #result { margin-top: 20px; background: #eef; padding: 10px; border-radius: 5px; }
+    label { display: block; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>🤖 AMROPick – REST Interface</h1>
+
+  <h2>1. Load Part</h2>
+  <label>Part ID:</label>
+  <input type="number" id="part_id" value="3">
+
+  <label>Part Name:</label>
+  <input type="text" id="part_name" value="Plate 3">
+
+  <label>Pick Point (x,y,z):</label>
+  <input type="text" id="pick_point" value="0.0,0.0,0.0">
+
+  <label>Select .PLY Model File:</label>
+  <input type="file" id="ply_file" accept=".ply" onchange="handleFileChange()">
+
+  <label>Model Path (auto-filled):</label>
+  <input type="text" id="model_path" readonly>
+
+  <button onclick="loadPart()">📦 Load Part</button>
+
+  <h2>2. Detect Part</h2>
+  <button onclick="detectPart()">🔍 Detect</button>
+
+  <div id="result"></div>
+
+  <script>
+    const API = 'http://localhost:8000';
+
+    function handleFileChange() {
+      const fileInput = document.getElementById("ply_file");
+      const file = fileInput.files[0];
+      if (file) {
+        // Just use the filename assuming it's saved in `models/` folder
+        document.getElementById("model_path").value = "models/" + file.name;
+      }
+    }
+
+    function loadPart() {
+      const part_id = parseInt(document.getElementById("part_id").value);
+      const name = document.getElementById("part_name").value;
+      const pick_point = document.getElementById("pick_point").value.split(",").map(Number);
+      const model_path = document.getElementById("model_path").value;
+
+      const payload = { part_id, name, model_path, pick_point };
+
+      fetch(`${API}/load_part`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(data => showResult(data))
+        .catch(err => showResult({ error: err.message }));
+    }
+
+    function detectPart() {
+      const part_id = parseInt(document.getElementById("part_id").value);
+      const payload = { part_id };
+
+      fetch(`${API}/detect`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(data => showResult(data))
+        .catch(err => showResult({ error: err.message }));
+    }
+
+    function showResult(data) {
+      document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
