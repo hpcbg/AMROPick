@@ -32,6 +32,7 @@ def main():
     os.makedirs(intermediate_results, exist_ok=True)
     cv2.imwrite(os.path.join(intermediate_results, "captured_rgb.png"), color_image)
     cv2.imwrite(os.path.join(intermediate_results, "filtered_depth.png"), depth_vis)
+    cv2.imwrite(os.path.join(intermediate_results, "depth_frame.png"), depth_frame)
 
     print("[INFO] Running segmentation...")
     masks, detections, names = run_segmentation(

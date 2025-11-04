@@ -5,19 +5,6 @@ import copy
 from utils import load_config
 
 
-
-def _rotz(deg: float) -> np.ndarray:
-    """4x4 homogeneous rotation about +Z (Yaw) by 'deg' degrees."""
-    th = np.deg2rad(deg)
-    c, s = np.cos(th), np.sin(th)
-    T = np.eye(4)
-    T[:3, :3] = np.array([[c, -s, 0],
-                          [s,  c, 0],
-                          [0,  0, 1]], dtype=float)
-    return T
-
-
-
 def draw_registration_result(scene, model, transformation=None, window_name="Registration"):
     if transformation is not None:
         model = copy.deepcopy(model)
@@ -53,6 +40,8 @@ def run_alignment(model_path, scene_path):
     scene = o3d.io.read_point_cloud(scene_path)
 
     initial_translation = scene.get_center() - model.get_center()
+    print(f'Model center: *************** {model.get_center()}')
+
     T_init = np.eye(4)
     T_init[:3, 3] = initial_translation
     model.translate(initial_translation)
@@ -117,25 +106,21 @@ def run_alignment(model_path, scene_path):
     scene.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=icp_threshold * 2, max_nn=30))
     model.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=icp_threshold * 2, max_nn=30))
 
-    # result_icp = o3d.pipelines.registration.registration_icp(
-    #     model, scene, max_correspondence_distance=icp_threshold,
-    #     init=init_transformation,
-    #     estimation_method=o3d.pipelines.registration.TransformationEstimationPointToPlane()
-    # )
-
-
     # --- Candidate A: model as-is ---
     res_a = o3d.pipelines.registration.registration_icp(
-        model, scene,
-        max_correspondence_distance=icp_threshold,
+        model, scene, max_correspondence_distance=icp_threshold,
         init=init_transformation,
         estimation_method=o3d.pipelines.registration.TransformationEstimationPointToPlane(),
     )
 
     # --- Candidate B: model yaw-rotated by 180° ---
-    T_yaw = _rotz(180.0)
     model_rot = copy.deepcopy(model)
-    model_rot.transform(T_yaw)
+    R_yaw180 = model.get_rotation_matrix_from_xyz((0, 0, np.pi))
+    T_yaw180 = np.eye(4)
+    T_yaw180[:3, :3] = R_yaw180
+    T_yaw180[:3, 3] = model.get_center() - R_yaw180 @ model.get_center()  # rotate around center
+
+    model_rot.transform(T_yaw180)
 
     res_b = o3d.pipelines.registration.registration_icp(
         model_rot, scene,
@@ -144,31 +129,21 @@ def run_alignment(model_path, scene_path):
         estimation_method=o3d.pipelines.registration.TransformationEstimationPointToPlane(),
     )
 
-    # Compose B back to ORIGINAL model frame:
-    # ICP returns: target ≈ T_res * (source points).
-    # For the rotated case, source = T_yaw * model, so:
-    # target ≈ T_res_b * (T_yaw * model) = (T_res_b @ T_yaw) * model
-    T_b_in_original_frame = res_b.transformation @ T_yaw
-
     # Pick the better result  → lower RMSE; tie-breaker: higher fitness
     score_a = (res_a.inlier_rmse, -res_a.fitness)
     score_b = (res_b.inlier_rmse, -res_b.fitness)
 
     if score_b < score_a:
         result_icp = res_b
-        result_icp.transformation = T_b_in_original_frame  # keep metrics from res_b
         picked = "yaw180"
+        # Compensate for the initial 180° rotation → transform back to original model frame
+        result_icp.transformation = result_icp.transformation @ T_yaw180
     else:
         result_icp = res_a
         picked = "normal"
 
     print(f"[ICP] picked={picked}  rmse={result_icp.inlier_rmse:.6f}  fitness={result_icp.fitness:.4f}")
     print("ICP transformation:\n", result_icp.transformation)
-
-
-
-
-
 
 
     print("ICP transformation:\n", result_icp.transformation)
