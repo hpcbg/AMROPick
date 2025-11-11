@@ -138,6 +138,12 @@ dmypy.json
 .idea/
 .vscode/
 
+# YOLO staff
+**/labels/*.txt
+/runs
+/notebooks/datasets
+yolo*
+
 # Images
 *.png
 *.ply

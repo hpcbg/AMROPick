@@ -36,7 +36,8 @@ alignment:
   voxel_size: 0.004
 paths:
   intermediate_results: intermediate_results
-  model_weights_path: ../notebooks/runs/segment/train11/weights/best.pt
+  model_weights_path: ../runs/segment/train5/weights/best.pt
+
 model_mapping:
   Plate 1: object_models/Plate1.ply
   Plate 2: object_models/Plate2.ply

@@ -40,7 +40,7 @@ def extract_masked_pointcloud(mask, depth_frame, color_image, color_intr):
         raise RuntimeError("No valid 3D points extracted.")
     return np.array(points), np.array(colors)
 
-def capture_filtered(pipeline, align, n_frames=5, apply_average=False, use_disparity=False):
+def capture_filtered(pipeline, align, n_frames=2, apply_average=False, use_disparity=False):
     print("[INFO] Warming up sensor...")
     for _ in range(30):
         pipeline.wait_for_frames()
