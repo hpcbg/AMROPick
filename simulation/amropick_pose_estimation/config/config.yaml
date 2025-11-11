@@ -1,0 +1,58 @@
+model_dir: object_models
+render_overlay_default: true
+output_units: deg
+icp_threshold: 0.02
+max_icp_iterations: 50
+robot_pose:
+  translation:
+  - 0.0
+  - 0.0
+  - 0.0
+  rotation_deg:
+  - 0.0
+  - 0.0
+  - 0.0
+camera_pose:
+  rotation_deg:
+  - 180.0
+  - 0.0
+  - 0.0
+  translation:
+  - 0.6
+  - 0.0
+  - 0.5
+alignment:
+  icp_threshold: 0.05
+  init_rotation_deg:
+  - 0.0
+  - 0.0
+  - 0.0
+  init_translation:
+  - 0.0
+  - 0.0
+  - 0.0
+  skip_ransac: true
+  visualize: true
+  voxel_size: 0.004
+paths:
+  intermediate_results: intermediate_results
+  model_weights_path: weights/sam2_plus_2025-06-17_simeon_best.pt
+  classifier:
+    model_path: "weights/best_shape_classifier.joblib"
+    scaler_path: "weights/feature_scaler.joblib"
+    encoder_path: "weights/label_encoder.joblib"
+    features_path: "weights/feature_columns.joblib"
+model_mapping:
+  Plate 1: models/Plate1.ply
+  Plate 2: models/Plate2.ply
+  Plate 3: models/Plate3.ply
+  Plate 4: models/Plate4.ply
+  Plate 5: models/Plate5.ply
+segmentation:
+  confidence_threshold: 0.6
+valid_classes:
+- Plate 1
+- Plate 2
+- Plate 3
+- Plate 4
+- Plate 5
