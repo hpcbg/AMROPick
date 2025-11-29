@@ -1,0 +1,5 @@
+string rotation_json
+---
+bool success
+---
+string status

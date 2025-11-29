@@ -1,0 +1,1 @@
+ros2 service call /system_monitor/manipulate_state custom_interfaces/srv/ManipulateState "{manipulated_state_json: '{\"status\": \"ok\"}'}"

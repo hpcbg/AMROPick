@@ -1,0 +1,1 @@
+ros2 service call /task_pick_and_place/execute custom_interfaces/srv/Void

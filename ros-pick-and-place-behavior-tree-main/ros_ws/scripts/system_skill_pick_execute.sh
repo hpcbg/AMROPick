@@ -1,0 +1,1 @@
+ros2 service call /system_skill_pick/execute custom_interfaces/srv/Void

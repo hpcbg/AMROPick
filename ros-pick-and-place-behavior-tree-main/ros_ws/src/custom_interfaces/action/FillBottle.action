@@ -1,0 +1,5 @@
+string amount_json
+---
+bool success
+---
+string status

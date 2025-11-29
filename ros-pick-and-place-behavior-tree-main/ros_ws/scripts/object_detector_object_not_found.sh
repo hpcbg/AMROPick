@@ -1,0 +1,1 @@
+ros2 service call /object_detector/manipulate_state custom_interfaces/srv/ManipulateState "{manipulated_state_json: '{\"detected_object\": {\"found\":false,\"pose\":{\"x\": 0.0, \"y\": 0.0, \"z\": 0.0, \"rx\": 2.0, \"ry\": 0.0, \"rz\": 0.0}}}'}"
