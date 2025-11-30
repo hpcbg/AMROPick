@@ -147,3 +147,4 @@ yolo*
 # Images
 *.png
 *.ply
+!ros-pick-and-place-behavior-tree/ros_ws/diagrams/*.png
