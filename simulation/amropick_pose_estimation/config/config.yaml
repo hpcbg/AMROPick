@@ -37,6 +37,8 @@ alignment:
 paths:
   intermediate_results: intermediate_results
   model_weights_path: weights/sam2_plus_2025-06-17_simeon_best.pt
+  sam_cfg: weights/sam2.1_hiera_l.yaml
+  sam_ckpt: weights/sam2.1_hiera_large.pt
   classifier:
     model_path: "weights/best_shape_classifier.joblib"
     scaler_path: "weights/feature_scaler.joblib"

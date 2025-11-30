@@ -19,6 +19,9 @@ setup(
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
         (os.path.join('share', package_name, 'models'), glob('models/*.*')),
         (os.path.join('share', package_name, 'weights'), glob('weights/*.*')),
+        (os.path.join('share', package_name, 'weights'), glob('weights/sam2/checkpoints/*.*')),
+        (os.path.join('share', package_name, 'weights'), glob('weights/sam2/configs/sam2.1/*.*')),
+
         # --- END OF ADDED LINES ---
     ],
     install_requires=['setuptools'],

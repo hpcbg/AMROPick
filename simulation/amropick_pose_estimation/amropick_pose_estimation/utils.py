@@ -125,7 +125,13 @@ def load_config(node=None, config_file='config/config.yaml'):
     # 1. Resolve weights path
     weights_path = cfg['paths']['model_weights_path']
     cfg['paths']['model_weights_path'] = os.path.join(package_share_dir, weights_path)
-
+    # sam_cfg: "weights/sam2.1_hiera_large.pt"
+    # sam_ckpt: "config/sam2.1_hiera_l.yaml"
+    sam_cfg_path = cfg['paths']['sam_cfg']
+    cfg['paths']['sam_cfg'] = os.path.join(package_share_dir, sam_cfg_path)
+    sam_ckpt_path = cfg['paths']['sam_ckpt']
+    cfg['paths']['sam_ckpt'] = os.path.join(package_share_dir, sam_ckpt_path)
+    
     # 2. Resolve all model paths in model_mapping
     for key, model_path in cfg['model_mapping'].items():
         cfg['model_mapping'][key] = os.path.join(package_share_dir, model_path)
