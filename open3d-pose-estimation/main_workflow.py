@@ -26,6 +26,13 @@ def main():
     pipeline, align, profile = setup_pipeline()
     color_profile = profile.get_stream(rs.stream.color).as_video_stream_profile()
     color_intr = color_profile.get_intrinsics()
+    sensor = profile.get_device().first_color_sensor()
+    sensor.set_option(rs.option.sharpness, config["camera"]["rgb"]["sharpness"])
+    # sensor.set_option(rs.option.contrast, 76)
+    # sensor.set_option(rs.option.gamma, 300)
+    # sensor.set_option(rs.option.saturation, 64)
+    sensor.set_option(rs.option.enable_auto_white_balance, 1)
+
 
     print("[INFO] Capturing frame...")
     depth_frame, color_image, depth_vis = capture_filtered(pipeline, align)

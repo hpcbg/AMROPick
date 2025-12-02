@@ -22,7 +22,7 @@ camera_pose:
   - 0.0
   - 0.5
 alignment:
-  icp_threshold: 0.05
+  icp_threshold: 0.2
   init_rotation_deg:
   - 0.0
   - 0.0
@@ -33,7 +33,7 @@ alignment:
   - 0.0
   skip_ransac: true
   visualize: true
-  voxel_size: 0.004
+  voxel_size: 0.008
 paths:
   intermediate_results: intermediate_results
   model_weights_path: ../runs/segment/train5/weights/best.pt
@@ -52,3 +52,41 @@ valid_classes:
 - Plate 3
 - Plate 4
 - Plate 5
+
+camera:
+  rgb:
+    resolution: [1920, 1080]
+    fps: 30
+    auto_exposure: false
+    exposure: 156
+    gain: 64
+    brightness: 6
+    contrast: 76
+    gamma: 300
+    saturation: 64
+    sharpness: 60
+    auto_white_balance: 1
+
+  depth:
+    resolution: [1280, 720]
+    fps: 30
+    visual_preset: "high_accuracy"   # or "high_density"
+    laser_power: 200
+    confidence_threshold: 1
+
+  alignment:
+    align_depth_to_color: true
+
+  post_processing:
+    decimation:
+      enabled: true
+      magnitude: 2
+    spatial:
+      enabled: true
+      magnitude: 3
+      smooth_alpha: 0.45
+      smooth_delta: 17
+    temporal:
+      enabled: true
+      smooth_alpha: 0.39
+      smooth_delta: 38

@@ -40,7 +40,71 @@ def extract_masked_pointcloud(mask, depth_frame, color_image, color_intr):
         raise RuntimeError("No valid 3D points extracted.")
     return np.array(points), np.array(colors)
 
-def capture_filtered(pipeline, align, n_frames=2, apply_average=False, use_disparity=False):
+
+def capture_filtered(pipeline, align, n_frames=1, apply_average=False, use_disparity=False):
+    config = load_config()
+    print("[INFO] Warming up sensor...")
+    for _ in range(30):
+        pipeline.wait_for_frames()
+
+    frames = pipeline.wait_for_frames()
+    aligned_frames = align.process(frames)
+
+    spatial = rs.spatial_filter()
+    temporal = rs.temporal_filter()
+    hole_filling = rs.hole_filling_filter()
+
+    # Spatial sharpening values
+    spatial.set_option(rs.option.filter_magnitude, config["camera"]["post_processing"]["spatial"]["magnitude"])  # 1–5
+    spatial.set_option(rs.option.filter_smooth_alpha, config["camera"]["post_processing"]["spatial"]["smooth_alpha"])  # sharpening factor (0–1)
+    spatial.set_option(rs.option.filter_smooth_delta, config["camera"]["post_processing"]["spatial"]["smooth_delta"])  # edge threshold
+
+    temporal.set_option(rs.option.filter_smooth_alpha, config["camera"]["post_processing"]["temporal"]["smooth_alpha"])  # sharpening factor (0–1)
+    temporal.set_option(rs.option.filter_smooth_delta, config["camera"]["post_processing"]["temporal"]["smooth_delta"])  # edge threshold
+
+    colorizer = rs.colorizer()
+    depth_to_disparity = rs.disparity_transform(True)
+    disparity_to_depth = rs.disparity_transform(False)
+
+    if apply_average:
+        depth_accum = None
+        color_accum = None
+
+    for _ in range(n_frames):
+        depth_frame = aligned_frames.get_depth_frame()
+        color_frame = aligned_frames.get_color_frame()
+        color_image = np.asanyarray(color_frame.get_data())
+
+        if use_disparity:
+            depth_frame = depth_to_disparity.process(depth_frame)
+        depth_frame = spatial.process(depth_frame)
+        depth_frame = temporal.process(depth_frame)
+        if use_disparity:
+            depth_frame = disparity_to_depth.process(depth_frame)
+        depth_frame = hole_filling.process(depth_frame)
+
+        if apply_average:
+            depth_np = np.asanyarray(depth_frame.get_data()).astype(np.float32)
+            if depth_accum is None:
+                depth_accum = depth_np
+                color_accum = color_image.astype(np.float32)
+            else:
+                depth_accum += depth_np
+                color_accum += color_image.astype(np.float32)
+
+    if apply_average:
+        averaged_depth = (depth_accum / n_frames).astype(np.uint16)
+        averaged_color = (color_accum / n_frames).astype(np.uint8)
+        try:
+            colorized_depth = np.asanyarray(colorizer.colorize(depth_frame).get_data())
+        except Exception:
+            colorized_depth = np.zeros_like(averaged_color)
+        return averaged_depth, averaged_color, colorized_depth
+
+    colorized_depth = np.asanyarray(colorizer.colorize(depth_frame).get_data())
+    return np.asanyarray(depth_frame.get_data()), np.asanyarray(color_frame.get_data()), colorized_depth
+
+
     print("[INFO] Warming up sensor...")
     for _ in range(30):
         pipeline.wait_for_frames()
