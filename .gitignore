@@ -143,6 +143,7 @@ dmypy.json
 /runs
 /notebooks/datasets
 yolo*
+*.pt
 
 # Images
 *.png
