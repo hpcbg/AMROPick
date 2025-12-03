@@ -20,16 +20,22 @@ def capture_frames(pipeline, align, profile, apply_filters=False):
     config = load_config()
 
     color_sensor = profile.get_device().first_color_sensor()
-    color_sensor.set_option(rs.option.sharpness, config["camera"]["rgb"]["sharpness"])
-    color_sensor.set_option(rs.option.contrast, config["camera"]["rgb"]["contrast"])
-    color_sensor.set_option(rs.option.gamma, config["camera"]["rgb"]["gamma"])
-    color_sensor.set_option(rs.option.saturation, config["camera"]["rgb"]["saturation"])
-    color_sensor.set_option(rs.option.enable_auto_white_balance, 1)
-    color_sensor.set_option(rs.option.backlight_compensation, 1)
 
-    # depth_sensor = profile.get_device().first_depth_sensor()
-    # depth_sensor.set_option(rs.option.emitter_enabled, 1)  # Laser ON
-    # depth_sensor.set_option(rs.option.enable_auto_exposure, 1)
+    color_sensor.set_option(rs.option.enable_auto_exposure, 1)
+    color_sensor.set_option(rs.option.global_time_enabled, 1)
+    color_sensor.set_option(rs.option.backlight_compensation, 1)
+    color_sensor.set_option(rs.option.auto_exposure_priority, 1)
+
+    # Manual color parameters (only take effect if auto-exposure is OFF)
+    # color_sensor.set_option(rs.option.sharpness, config["camera"]["rgb"]["sharpness"])
+    # color_sensor.set_option(rs.option.contrast, config["camera"]["rgb"]["contrast"])
+    # color_sensor.set_option(rs.option.gamma, config["camera"]["rgb"]["gamma"])
+    # color_sensor.set_option(rs.option.saturation, config["camera"]["rgb"]["saturation"])
+    color_sensor.set_option(rs.option.enable_auto_white_balance, 1)
+    
+    depth_sensor = profile.get_device().first_depth_sensor()
+    depth_sensor.set_option(rs.option.emitter_enabled, 1)  # Laser ON
+    depth_sensor.set_option(rs.option.enable_auto_exposure, 1)
    
     
     print("[INFO] Warming up sensor...")
