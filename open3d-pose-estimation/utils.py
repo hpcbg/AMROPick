@@ -7,7 +7,10 @@ import os
 from ultralytics import YOLO
 
 def load_config(path="config.yaml"):
-    with open(path, "r") as f:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    full_path = os.path.join(base_dir, path)
+
+    with open(full_path, "r") as f:
         cfg = yaml.safe_load(f)
     return cfg
 
@@ -53,6 +56,9 @@ def capture_filtered(pipeline, align, n_frames=1, apply_average=False, use_dispa
     spatial = rs.spatial_filter()
     temporal = rs.temporal_filter()
     hole_filling = rs.hole_filling_filter()
+
+    depth_frame = aligned_frames.get_depth_frame()
+    color_frame = aligned_frames.get_color_frame()
 
     # Spatial sharpening values
     spatial.set_option(rs.option.filter_magnitude, config["camera"]["post_processing"]["spatial"]["magnitude"])  # 1–5
@@ -104,58 +110,6 @@ def capture_filtered(pipeline, align, n_frames=1, apply_average=False, use_dispa
     colorized_depth = np.asanyarray(colorizer.colorize(depth_frame).get_data())
     return np.asanyarray(depth_frame.get_data()), np.asanyarray(color_frame.get_data()), colorized_depth
 
-
-    print("[INFO] Warming up sensor...")
-    for _ in range(30):
-        pipeline.wait_for_frames()
-
-    frames = pipeline.wait_for_frames()
-    aligned_frames = align.process(frames)
-
-    spatial = rs.spatial_filter()
-    temporal = rs.temporal_filter()
-    hole_filling = rs.hole_filling_filter()
-    colorizer = rs.colorizer()
-    depth_to_disparity = rs.disparity_transform(True)
-    disparity_to_depth = rs.disparity_transform(False)
-
-    if apply_average:
-        depth_accum = None
-        color_accum = None
-
-    for _ in range(n_frames):
-        depth_frame = aligned_frames.get_depth_frame()
-        color_frame = aligned_frames.get_color_frame()
-        color_image = np.asanyarray(color_frame.get_data())
-
-        if use_disparity:
-            depth_frame = depth_to_disparity.process(depth_frame)
-        depth_frame = spatial.process(depth_frame)
-        depth_frame = temporal.process(depth_frame)
-        if use_disparity:
-            depth_frame = disparity_to_depth.process(depth_frame)
-        depth_frame = hole_filling.process(depth_frame)
-
-        if apply_average:
-            depth_np = np.asanyarray(depth_frame.get_data()).astype(np.float32)
-            if depth_accum is None:
-                depth_accum = depth_np
-                color_accum = color_image.astype(np.float32)
-            else:
-                depth_accum += depth_np
-                color_accum += color_image.astype(np.float32)
-
-    if apply_average:
-        averaged_depth = (depth_accum / n_frames).astype(np.uint16)
-        averaged_color = (color_accum / n_frames).astype(np.uint8)
-        try:
-            colorized_depth = np.asanyarray(colorizer.colorize(depth_frame).get_data())
-        except Exception:
-            colorized_depth = np.zeros_like(averaged_color)
-        return averaged_depth, averaged_color, colorized_depth
-
-    colorized_depth = np.asanyarray(colorizer.colorize(depth_frame).get_data())
-    return np.asanyarray(depth_frame.get_data()), np.asanyarray(color_frame.get_data()), colorized_depth
 
 def run_segmentation(model_path, image, valid_classes, confidence=0.5):
     model = YOLO(model_path)

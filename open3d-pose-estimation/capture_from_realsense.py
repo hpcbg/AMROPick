@@ -19,7 +19,6 @@ def main():
     parser.add_argument('--output', type=str, default="captured_dataset", help="Output directory")
     parser.add_argument('--mask-path', type=str, help="Path to mask image")
     args = parser.parse_args()
-
     os.makedirs(args.output, exist_ok=True)
 
     pipeline, align, profile = setup_pipeline()

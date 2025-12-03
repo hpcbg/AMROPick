@@ -1,7 +1,7 @@
 model_dir: object_models
 render_overlay_default: true
 output_units: deg
-icp_threshold: 0.02
+icp_threshold: 0.01
 max_icp_iterations: 50
 robot_pose:
   translation:
@@ -22,7 +22,7 @@ camera_pose:
   - 0.0
   - 0.5
 alignment:
-  icp_threshold: 0.2
+  icp_threshold: 0.3
   init_rotation_deg:
   - 0.0
   - 0.0
@@ -33,10 +33,11 @@ alignment:
   - 0.0
   skip_ransac: true
   visualize: true
-  voxel_size: 0.008
+  voxel_size: 0.0005
 paths:
   intermediate_results: intermediate_results
-  model_weights_path: ../runs/segment/train5/weights/best.pt
+  # model_weights_path: ../runs/segment/train8/weights/best.pt
+  model_weights_path: ../notebooks/best.pt
 
 model_mapping:
   Plate 1: object_models/Plate1.ply
@@ -58,13 +59,12 @@ camera:
     resolution: [1920, 1080]
     fps: 30
     auto_exposure: false
-    exposure: 156
     gain: 64
-    brightness: 6
-    contrast: 76
-    gamma: 300
-    saturation: 64
-    sharpness: 60
+    brightness: 5
+    contrast: 50
+    gamma: 150
+    saturation: 15
+    sharpness: 50
     auto_white_balance: 1
 
   depth:

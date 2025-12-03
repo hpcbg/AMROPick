@@ -26,11 +26,11 @@ def main():
     pipeline, align, profile = setup_pipeline()
     color_profile = profile.get_stream(rs.stream.color).as_video_stream_profile()
     color_intr = color_profile.get_intrinsics()
-    color_sensor = profile.get_device().first_color_sensor()
-    color_sensor.set_option(rs.option.sharpness, config["camera"]["rgb"]["sharpness"])
-    color_sensor.set_option(rs.option.contrast, config["camera"]["rgb"]["contrast"])
-    color_sensor.set_option(rs.option.gamma, config["camera"]["rgb"]["gamma"])
-    color_sensor.set_option(rs.option.saturation, config["camera"]["rgb"]["saturation"])
+    # color_sensor = profile.get_device().first_color_sensor()
+    # color_sensor.set_option(rs.option.sharspness, config["camera"]["rgb"]["sharpness"])
+    # color_sensor.set_option(rs.option.contrast, config["camera"]["rgb"]["contrast"])
+    # color_sensor.set_option(rs.option.gamma, config["camera"]["rgb"]["gamma"])
+    # color_sensor.set_option(rs.option.saturation, config["camera"]["rgb"]["saturation"])
 
 
     print("[INFO] Capturing frame...")

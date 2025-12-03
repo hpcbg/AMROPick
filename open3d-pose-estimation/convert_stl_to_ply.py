@@ -103,7 +103,7 @@ if __name__ == "__main__":
     parser.add_argument("--mode", choices=["pcd", "mesh", "topdown"], default="topdown", help="Conversion mode")
     parser.add_argument("--flat", action="store_true", help="Flatten points to XY plane with Z noise")
     parser.add_argument("--num_points", type=int, default=10000, help="Number of points to sample from surface")
-    parser.add_argument("--z_noise", type=float, default=0.0001, help="Stddev of noise added to Z when flattening")
+    parser.add_argument("--z_noise", type=float, default=0.0005, help="Stddev of noise added to Z when flattening")
     parser.add_argument("--sampling", choices=["uniform", "poisson"], default="uniform", help="Sampling method")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing PLY files")
 
