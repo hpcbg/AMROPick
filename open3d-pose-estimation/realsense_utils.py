@@ -10,7 +10,7 @@ def setup_pipeline():
     align = rs.align(rs.stream.color)
 
     # Warm-up
-    for _ in range(30):
+    for _ in range(15):
         pipeline.wait_for_frames()
 
     return pipeline, align, profile

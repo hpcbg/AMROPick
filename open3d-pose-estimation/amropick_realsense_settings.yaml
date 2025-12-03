@@ -1,0 +1,43 @@
+rgb:
+  resolution: [1920, 1080]
+  fps: 30
+  auto_exposure: false
+  exposure: 150           # Only used if auto_exposure = false
+  gain: 64
+  brightness: 5
+  contrast: 50
+  gamma: 150
+  saturation: 15
+  sharpness: 50
+  auto_white_balance: 1
+
+depth:
+  resolution: [1280, 720]
+  fps: 30
+  visual_preset: "high_accuracy"     # options: "default", "high_accuracy", ...
+  laser_power: 200                   # 0–360 (for D435/D415)
+  confidence_threshold: 1            # 0–15
+
+alignment:
+  align_depth_to_color: true
+
+post_processing:
+  apply_post_processing: false
+
+  decimation:
+    enabled: true
+    magnitude: 2                     # 1–4  (2 = half resolution)
+  
+  spatial:
+    enabled: true
+    magnitude: 3                     # 1–5
+    smooth_alpha: 0.25               # smoothing strength
+    smooth_delta: 10                 # smoothing threshold
+  
+  temporal:
+    enabled: true
+    smooth_alpha: 0.2                       # smoothing between frames
+    smooth_delta: 15                        # threshold for motion
+
+  hole_filling:
+    enabled: false                   # can enable if geometry requires it

@@ -1,7 +1,7 @@
 model_dir: object_models
 render_overlay_default: true
 output_units: deg
-icp_threshold: 0.01
+icp_threshold: 0.002
 max_icp_iterations: 50
 robot_pose:
   translation:
@@ -33,7 +33,7 @@ alignment:
   - 0.0
   skip_ransac: true
   visualize: true
-  voxel_size: 0.0005
+  voxel_size: 0.0003
 paths:
   intermediate_results: intermediate_results
   # model_weights_path: ../runs/segment/train8/weights/best.pt
@@ -60,7 +60,7 @@ camera:
     fps: 30
     auto_exposure: false
     gain: 64
-    brightness: 5
+    brightness: 0
     contrast: 50
     gamma: 150
     saturation: 15

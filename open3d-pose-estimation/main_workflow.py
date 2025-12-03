@@ -5,7 +5,6 @@ import pyrealsense2 as rs
 import os
 from utils import (
     extract_masked_pointcloud,
-    capture_filtered,
     run_segmentation,
     visualize_detections,
     create_full_pointcloud_from_rgbd,
@@ -16,25 +15,19 @@ from utils import (
     select_grasp_point_from_model, 
     create_grasp_frame
 )
-from realsense_utils import setup_pipeline
+from realsense_setup import start_realsense, capture_frames
 from run_icp_alignment import run_alignment
 
 def main():
     config = load_config()
     intermediate_results = config["paths"]["intermediate_results"]
 
-    pipeline, align, profile = setup_pipeline()
+    pipeline, align, profile = start_realsense()
     color_profile = profile.get_stream(rs.stream.color).as_video_stream_profile()
     color_intr = color_profile.get_intrinsics()
-    # color_sensor = profile.get_device().first_color_sensor()
-    # color_sensor.set_option(rs.option.sharspness, config["camera"]["rgb"]["sharpness"])
-    # color_sensor.set_option(rs.option.contrast, config["camera"]["rgb"]["contrast"])
-    # color_sensor.set_option(rs.option.gamma, config["camera"]["rgb"]["gamma"])
-    # color_sensor.set_option(rs.option.saturation, config["camera"]["rgb"]["saturation"])
-
 
     print("[INFO] Capturing frame...")
-    depth_frame, color_image, depth_vis = capture_filtered(pipeline, align)
+    depth_frame, color_image, depth_vis = capture_frames(pipeline, align, profile)
     os.makedirs(intermediate_results, exist_ok=True)
     cv2.imwrite(os.path.join(intermediate_results, "captured_rgb.png"), color_image)
     cv2.imwrite(os.path.join(intermediate_results, "filtered_depth.png"), depth_vis)
