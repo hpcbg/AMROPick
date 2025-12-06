@@ -121,8 +121,10 @@ def main():
     # Load image
     color_image = color_image
 
-    # model_mesh = o3d.io.read_triangle_mesh("object_models/Plate2.stl")
-    model_mesh = load_scaled_mesh_from_stl("object_models/Plate2.stl", model_pcd)
+  
+    # model_mesh = load_scaled_mesh_from_stl("object_models/Plate2.stl", model_pcd)
+    model_mesh = o3d.io.read_triangle_mesh("object_models/Plate2.stl")
+    model_mesh.scale(0.001, center=(0,0,0))   # important!
 
     # Draw overlay
     overlay = draw_model_on_image(

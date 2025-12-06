@@ -321,5 +321,6 @@ def load_scaled_mesh_from_stl(stl_path, model_pcd_for_icp):
     print("Using mesh scale:", scale)
 
     mesh.scale(scale, center=bbox_mesh.get_center())
+
     return mesh
 

@@ -102,6 +102,12 @@ def run_alignment(model_path, scene_path):
             print("[INFO] Visualizing after RANSAC...")
             draw_registration_result(scene, model, init_transformation, window_name="After RANSAC")
 
+    
+    print("Model center:", model.get_center())
+    print("Scene center:", scene.get_center())
+    print("Initial translation:", initial_translation)
+    print("T_init:\n", T_init)
+    
     print(f"[INFO] Refining with ICP (threshold = {icp_threshold:.4f})...")
     scene.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=icp_threshold * 2, max_nn=30))
     model.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=icp_threshold * 2, max_nn=30))
@@ -154,6 +160,11 @@ def run_alignment(model_path, scene_path):
 
     T_total = result_icp.transformation @ T_init
     result_icp.transformation = T_total  # replace with the full transformation
+
+
+
+    print("ICP raw transform:\n", result_icp.transformation)
+    print("T_total:\n", T_total)        
 
     return result_icp
 
