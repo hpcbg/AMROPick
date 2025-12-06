@@ -212,3 +212,114 @@ def create_grasp_frame(grasp_point, grasp_normal, size=0.07):
     T[:3, :3] = R
     T[:3, 3] = grasp_point
     return o3d.geometry.TriangleMesh.create_coordinate_frame(size=size).transform(T)
+
+def project_points_to_image(points_3d, intrinsics):
+    """
+    Projects Nx3 3D points in camera frame onto the RGB image.
+
+    points_3d: (N,3) numpy array in *camera* coordinates
+    intrinsics: open3d.camera.PinholeCameraIntrinsic
+    """
+    fx = intrinsics.fx
+    fy = intrinsics.fy
+    cx = intrinsics.ppx
+    cy = intrinsics.ppy
+
+    x = points_3d[:, 0]
+    y = points_3d[:, 1]
+    z = points_3d[:, 2]
+
+    z = np.where(z == 0, 1e-6, z)        # avoid division by zero
+
+    u = (fx * x / z + cx).astype(np.int32)
+    v = (fy * y / z + cy).astype(np.int32)
+
+    return np.stack([u, v], axis=1)
+
+def draw_model_on_image(image, mesh, T_model_cam, intrinsics, color=(0,255,0)):
+    """
+    Draws the projected mesh edges of a CAD model onto an RGB image.
+
+    image: numpy RGB image (HxWx3)
+    mesh:  open3d.geometry.TriangleMesh
+    T_model_cam: 4x4 transformation (model → camera)
+    intrinsics: camera intrinsics
+    """
+
+    img = image.copy()
+
+    # Convert mesh to lineset so we can draw edges
+    mesh.compute_vertex_normals()
+    lineset = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
+
+    # Get vertices (Nx3)
+    verts = np.asarray(lineset.points)
+
+    # Transform vertices from model → camera frame
+    verts_h = np.hstack((verts, np.ones((verts.shape[0], 1))))
+    verts_cam = (T_model_cam @ verts_h.T).T[:, :3]
+
+
+    # --- DEBUG Z-values BEFORE projection ---
+    print("\n--- Projection Debug ---")
+    print("Z min / max:", verts_cam[:, 2].min(), verts_cam[:, 2].max())
+
+    # Now compute projections (must come before pix-debug)
+    pix = project_points_to_image(verts_cam, intrinsics)
+
+    # image resolution
+    h, w = img.shape[:2]
+
+    # --- DEBUG: PIXEL RANGE ---
+    print("Projected u min/max:", pix[:, 0].min(), pix[:, 0].max())
+    print("Projected v min/max:", pix[:, 1].min(), pix[:, 1].max())
+
+    # How many points fall inside the RGB frame?
+    inside_mask = (
+        (pix[:, 0] >= 0) & (pix[:, 0] < w) &
+        (pix[:, 1] >= 0) & (pix[:, 1] < h)
+    )
+    print("Points inside image:", inside_mask.sum(), "/", len(pix))
+
+    # Draw 20 debug points
+    for (u, v) in pix[:20]:
+        if 0 <= u < w and 0 <= v < h:
+            cv2.circle(img, (u, v), 4, (0, 0, 255), -1)
+
+    print("--- End Projection Debug ---\n")
+
+
+
+
+
+    # Project to image
+    pix = project_points_to_image(verts_cam, intrinsics)
+
+    # Draw lines on image
+    for (i0, i1) in lineset.lines:
+        u0, v0 = pix[i0]
+        u1, v1 = pix[i1]
+
+        if 0 <= u0 < img.shape[1] and 0 <= u1 < img.shape[1] and \
+           0 <= v0 < img.shape[0] and 0 <= v1 < img.shape[0]:
+            cv2.line(img, (u0, v0), (u1, v1), color, 2)
+
+    return img
+
+
+def load_scaled_mesh_from_stl(stl_path, model_pcd_for_icp):
+    mesh = o3d.io.read_triangle_mesh(stl_path)
+    mesh.compute_vertex_normals()
+
+    # estimate scale from extents
+    bbox_pcd  = model_pcd_for_icp.get_axis_aligned_bounding_box()
+    bbox_mesh = mesh.get_axis_aligned_bounding_box()
+    ext_pcd   = bbox_pcd.get_extent()
+    ext_mesh  = bbox_mesh.get_extent()
+
+    scale = float(np.mean(ext_pcd / ext_mesh))
+    print("Using mesh scale:", scale)
+
+    mesh.scale(scale, center=bbox_mesh.get_center())
+    return mesh
+

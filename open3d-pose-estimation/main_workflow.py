@@ -13,7 +13,9 @@ from utils import (
     get_robot_pose,
     draw_frames,
     select_grasp_point_from_model, 
-    create_grasp_frame
+    create_grasp_frame,
+    draw_model_on_image,
+    load_scaled_mesh_from_stl
 )
 from realsense_setup import start_realsense, capture_frames
 from run_icp_alignment import run_alignment
@@ -111,6 +113,28 @@ def main():
         + grasp_frames
         + draw_frames(get_camera_pose(config), get_robot_pose(config))
     )
+
+    # # final_transform = 4x4 matrix model → camera frame
+    # aligned_mesh = copy.deepcopy(model_mesh)
+    # aligned_mesh.transform(final_transform)
+
+    # Load image
+    color_image = color_image
+
+    # model_mesh = o3d.io.read_triangle_mesh("object_models/Plate2.stl")
+    model_mesh = load_scaled_mesh_from_stl("object_models/Plate2.stl", model_pcd)
+
+    # Draw overlay
+    overlay = draw_model_on_image(
+        image=color_image,
+        mesh=model_mesh,                     # original mesh (not robot-transformed)
+        T_model_cam=alignment.transformation,  # ICP gives model→camera
+        intrinsics=color_intr
+    )
+
+    cv2.imshow("CAD Overlay", overlay)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
     pipeline.stop()
 
