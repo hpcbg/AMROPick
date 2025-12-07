@@ -5,34 +5,31 @@ icp_threshold: 0.002
 max_icp_iterations: 50
 robot_pose:
   translation:
-  - 0.0
-  - 0.0
-  - 0.0
+  - 0.1
+  - 0.3
+  - 0.7
   rotation_deg:
-  - 0.0
+  - 180
   - 0.0
   - 0.0
 camera_pose:
   rotation_deg:
-  - 180.0
+  - 0.0
   - 0.0
   - 0.0
   translation:
-  - 0.6
   - 0.0
-  - 0.5
+  - 0.0
+  - 0.0
 alignment:
   icp_threshold: 0.3
-  init_rotation_deg:
-  - 0.0
-  - 0.0
-  - 0.0
-  init_translation:
-  - 0.0
-  - 0.0
-  - 0.0
+  init_rotation_deg: false
+  # - 0.0
+  # - 0.0
+  # - 0.0
+  init_translation: false
   skip_ransac: true
-  visualize: true
+  visualize: false
   voxel_size: 0.0003
 paths:
   intermediate_results: intermediate_results

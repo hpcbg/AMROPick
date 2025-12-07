@@ -36,15 +36,19 @@ def run_alignment(model_path, scene_path):
     
     print(f"[INFO] Loading model: {model_path}")
     model = o3d.io.read_point_cloud(model_path)
+
+    print("Model initial center:", model.get_center())
+
     print(f"[INFO] Loading scene: {scene_path}")
     scene = o3d.io.read_point_cloud(scene_path)
 
     initial_translation = scene.get_center() - model.get_center()
-    print(f'Model center: *************** {model.get_center()}')
 
     T_init = np.eye(4)
     T_init[:3, 3] = initial_translation
     model.translate(initial_translation)
+
+    print("Model center ofter initial transform:", model.get_center())
 
     if visualize:
         print("[INFO] Visualizing initial scene and model...")
@@ -153,7 +157,6 @@ def run_alignment(model_path, scene_path):
 
 
     print("ICP transformation:\n", result_icp.transformation)
-    # model.transform(result_icp.transformation)
 
     print("[INFO] Visualizing final alignment...")
     draw_registration_result(scene, model, result_icp.transformation, window_name="Final Alignment: Model + Scene")
@@ -161,10 +164,8 @@ def run_alignment(model_path, scene_path):
     T_total = result_icp.transformation @ T_init
     result_icp.transformation = T_total  # replace with the full transformation
 
-
-
-    print("ICP raw transform:\n", result_icp.transformation)
-    print("T_total:\n", T_total)        
+    # print("ICP raw transform:\n", result_icp.transformation)
+    # print("T_total:\n", T_total)        
 
     return result_icp
 
@@ -174,14 +175,6 @@ def main():
     parser.add_argument('--model', type=str, required=True, help='Path to model PLY file')
     parser.add_argument('--scene', type=str, required=True, help='Path to scene PLY file')
     parser.add_argument('--voxel', type=float, default=0.005, help='Voxel size for downsampling and features')
-
-    parser.add_argument('--init_x', type=float, default=0.0, help='Initial X translation of model')
-    parser.add_argument('--init_y', type=float, default=0.0, help='Initial Y translation of model')
-    parser.add_argument('--init_z', type=float, default=0.0, help='Initial Z translation of model')
-
-    parser.add_argument('--init_rx', type=float, default=0.0, help='Initial rotation around X axis (degrees)')
-    parser.add_argument('--init_ry', type=float, default=0.0, help='Initial rotation around Y axis (degrees)')
-    parser.add_argument('--init_rz', type=float, default=0.0, help='Initial rotation around Z axis (degrees)')
 
     parser.add_argument('--icp_threshold', type=float, default=0.03, help='ICP max correspondence distance')
     parser.add_argument('--skip_ransac', action='store_true', help='Skip RANSAC and go straight to ICP')

@@ -82,8 +82,30 @@ def main():
     print("[INFO] Alignment:")
     alignment = run_alignment(model_path=model_path, scene_path=cut_scene_path)
 
-    T_model_to_object = alignment.transformation
-    T_model_to_robot = T_model_to_object
+    # T_model_to_object = alignment.transformation
+    # T_model_to_robot = T_model_to_object
+
+
+    # ICP output: Model → Camera
+    T_model_to_camera = alignment.transformation
+
+    # Camera → Robot (from config)
+    T_camera_to_robot = get_camera_pose(config)
+
+    # Final: Model → Robot
+    T_model_to_robot = T_camera_to_robot @ T_model_to_camera
+
+
+    print("MODEL→CAMERA:\n", T_model_to_camera)
+    print("CAMERA→ROBOT:\n", T_camera_to_robot)
+    print("MODEL→ROBOT:\n", T_model_to_robot)
+
+
+    print("[INFO] Transformation model → robot:")
+    print(T_model_to_robot)
+
+
+
 
     print("[INFO] Transformation from model to robot base:")
     print(T_model_to_robot)
@@ -93,9 +115,36 @@ def main():
 
     full_pcd = create_full_pointcloud_from_rgbd(depth_frame, color_image, color_intr)
 
+
+    # # Convert to Open3D frame
+    # T_rs_to_o3d = np.eye(4)
+    # T_rs_to_o3d[1,1] = -1   # flip Y
+    # T_rs_to_o3d[2,2] = -1   # flip Z
+
+    # T_robot_o3d = get_robot_pose(config)
+
+    # # Convert scene point cloud
+    # full_pcd.transform(T_rs_to_o3d)
+
+    # # Convert aligned model (it is in camera frame)
+    # model_pcd.transform(T_rs_to_o3d)
+
+    # # Convert camera pose (because camera is mounted and defined relative to robot but expressed in RealSense CS)
+    # T_cam_robot_rs = get_camera_pose(config)
+    # T_cam_robot_o3d = T_rs_to_o3d @ T_cam_robot_rs
+
+    # print("Camera (Open3D):\n", T_cam_robot_o3d)
+    # print("Robot  (Open3D):\n", T_robot_o3d)
+
+    # # Visualize
+    # o3d.visualization.draw_geometries(
+    #     [
+    #         full_pcd, model_pcd] 
+    #         + draw_frames(T_cam_robot_o3d, T_robot_o3d)
+    # )
+
     o3d.visualization.draw_geometries(
         [full_pcd, model_pcd] + draw_frames(get_camera_pose(config), get_robot_pose(config))
-        # [full_pcd, model_pcd]
     )
 
     # Example: Select grasp point on aligned model
@@ -130,7 +179,7 @@ def main():
     overlay = draw_model_on_image(
         image=color_image,
         mesh=model_mesh,                     # original mesh (not robot-transformed)
-        T_model_cam=alignment.transformation,  # ICP gives model→camera
+        T_model_cam=T_model_to_camera,  # ICP gives model→camera
         intrinsics=color_intr
     )
 
