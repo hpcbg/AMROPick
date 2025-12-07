@@ -13,7 +13,8 @@ from utils import (
     get_robot_pose,
     draw_frames,
     select_grasp_point_from_model, 
-    create_grasp_frame
+    create_grasp_frame,
+    draw_model_on_image
 )
 from realsense_setup import start_realsense, capture_frames
 from run_icp_alignment import run_alignment
@@ -27,12 +28,8 @@ def main():
     color_intr = color_profile.get_intrinsics()
 
     print("[INFO] Capturing frame...")
-    depth_frame, color_image, depth_vis = capture_frames(pipeline, align, profile)
-    os.makedirs(intermediate_results, exist_ok=True)
-    cv2.imwrite(os.path.join(intermediate_results, "captured_rgb.png"), color_image)
-    cv2.imwrite(os.path.join(intermediate_results, "filtered_depth.png"), depth_vis)
-    cv2.imwrite(os.path.join(intermediate_results, "depth_frame.png"), depth_frame)
-
+    depth_frame, color_image = capture_frames(pipeline, align, profile)
+ 
     print("[INFO] Running segmentation...")
     masks, detections, names = run_segmentation(
         config["paths"]["model_weights_path"],
@@ -80,11 +77,14 @@ def main():
     print("[INFO] Alignment:")
     alignment = run_alignment(model_path=model_path, scene_path=cut_scene_path)
 
-    T_model_to_object = alignment.transformation
-    T_model_to_robot = T_model_to_object
+    # ICP output: Model → Camera
+    T_model_to_camera = alignment.transformation
 
-    print("[INFO] Transformation from model to robot base:")
-    print(T_model_to_robot)
+    # Camera → Robot (from config)
+    T_camera_to_robot = get_camera_pose(config)
+
+    # Final: Model → Robot
+    T_model_to_robot = T_camera_to_robot @ T_model_to_camera
 
     model_pcd = o3d.io.read_point_cloud(model_path)
     model_pcd.transform(T_model_to_robot)
@@ -93,7 +93,6 @@ def main():
 
     o3d.visualization.draw_geometries(
         [full_pcd, model_pcd] + draw_frames(get_camera_pose(config), get_robot_pose(config))
-        # [full_pcd, model_pcd]
     )
 
     # Example: Select grasp point on aligned model
@@ -111,6 +110,23 @@ def main():
         + grasp_frames
         + draw_frames(get_camera_pose(config), get_robot_pose(config))
     )
+    
+    class_id = class_label.split()[1]
+
+    model_mesh = o3d.io.read_triangle_mesh(f"object_models/Plate{class_id}.stl")
+    model_mesh.scale(0.001, center=(0,0,0))   # important!
+
+    # Draw overlay
+    overlay = draw_model_on_image(
+        image=color_image,
+        mesh=model_mesh,                     # original mesh (not robot-transformed)
+        T_model_cam=T_model_to_camera,  # ICP gives model→camera
+        intrinsics=color_intr
+    )
+
+    cv2.imshow("CAD Overlay", overlay)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
     pipeline.stop()
 

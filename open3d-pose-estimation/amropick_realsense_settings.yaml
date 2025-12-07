@@ -21,6 +21,8 @@ depth:
 alignment:
   align_depth_to_color: true
 
+capture_from_file: true
+
 post_processing:
   apply_post_processing: false
 

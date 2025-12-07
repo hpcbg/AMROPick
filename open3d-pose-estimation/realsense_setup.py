@@ -1,6 +1,8 @@
+import cv2
+import os
 import pyrealsense2 as rs
 import numpy as np
-from utils import load_config
+from utils import load_config, capture_from_index
 
 
 def start_realsense():
@@ -17,6 +19,13 @@ def start_realsense():
 
 
 def capture_frames(pipeline, align, profile, apply_filters=False):
+    realsense_settings = load_config(path="amropick_realsense_settings.yaml")
+
+    if realsense_settings["capture_from_file"]:
+        print("[INFO] Capturing frame from file")
+        depth_frame, color_image = capture_from_index(21)
+        return depth_frame, color_image
+
     config = load_config()
 
     color_sensor = profile.get_device().first_color_sensor()
@@ -49,8 +58,6 @@ def capture_frames(pipeline, align, profile, apply_filters=False):
     color = aligned_frames.get_color_frame()
 
     if apply_filters:
-        realsense_settings = load_config(path="amropick_realsense_settings.yaml")
-
         hole_filling = rs.hole_filling_filter()
         depth_to_disparity = rs.disparity_transform(True)
         disparity_to_depth = rs.disparity_transform(False)
@@ -74,6 +81,14 @@ def capture_frames(pipeline, align, profile, apply_filters=False):
 
     colorizer = rs.colorizer()
     colorized_depth = np.asanyarray(colorizer.colorize(depth).get_data())
+    color_frame = np.asanyarray(color.get_data())
+    depth_frame = np.asanyarray(depth.get_data())
 
-    return np.asanyarray(depth.get_data()), np.asanyarray(color.get_data()), colorized_depth
+    intermediate_results = config["paths"]["intermediate_results"]
+    os.makedirs(intermediate_results, exist_ok=True)
+    cv2.imwrite(os.path.join(intermediate_results, "captured_rgb.png"), color_frame)
+    cv2.imwrite(os.path.join(intermediate_results, "filtered_depth.png"), colorized_depth)
+    cv2.imwrite(os.path.join(intermediate_results, "depth_frame.png"), depth_frame)
+
+    return depth_frame, color_frame
 
