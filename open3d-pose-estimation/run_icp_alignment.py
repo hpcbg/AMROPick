@@ -37,8 +37,6 @@ def run_alignment(model_path, scene_path):
     print(f"[INFO] Loading model: {model_path}")
     model = o3d.io.read_point_cloud(model_path)
 
-    print("Model initial center:", model.get_center())
-
     print(f"[INFO] Loading scene: {scene_path}")
     scene = o3d.io.read_point_cloud(scene_path)
 
@@ -47,8 +45,6 @@ def run_alignment(model_path, scene_path):
     T_init = np.eye(4)
     T_init[:3, 3] = initial_translation
     model.translate(initial_translation)
-
-    print("Model center ofter initial transform:", model.get_center())
 
     if visualize:
         print("[INFO] Visualizing initial scene and model...")
@@ -106,11 +102,6 @@ def run_alignment(model_path, scene_path):
             print("[INFO] Visualizing after RANSAC...")
             draw_registration_result(scene, model, init_transformation, window_name="After RANSAC")
 
-    
-    print("Model center:", model.get_center())
-    print("Scene center:", scene.get_center())
-    print("Initial translation:", initial_translation)
-    print("T_init:\n", T_init)
     
     print(f"[INFO] Refining with ICP (threshold = {icp_threshold:.4f})...")
     scene.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=icp_threshold * 2, max_nn=30))

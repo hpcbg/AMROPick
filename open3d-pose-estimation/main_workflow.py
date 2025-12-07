@@ -14,7 +14,7 @@ from utils import (
     draw_frames,
     select_grasp_point_from_model, 
     create_grasp_frame,
-    draw_model_on_image,
+    draw_model_on_image
 )
 from realsense_setup import start_realsense, capture_frames
 from run_icp_alignment import run_alignment
@@ -28,12 +28,8 @@ def main():
     color_intr = color_profile.get_intrinsics()
 
     print("[INFO] Capturing frame...")
-    depth_frame, color_image, depth_vis = capture_frames(pipeline, align, profile)
-    # os.makedirs(intermediate_results, exist_ok=True)
-    # cv2.imwrite(os.path.join(intermediate_results, "captured_rgb.png"), color_image)
-    # cv2.imwrite(os.path.join(intermediate_results, "filtered_depth.png"), depth_vis)
-    # cv2.imwrite(os.path.join(intermediate_results, "depth_frame.png"), depth_frame)
-
+    depth_frame, color_image = capture_frames(pipeline, align, profile)
+ 
     print("[INFO] Running segmentation...")
     masks, detections, names = run_segmentation(
         config["paths"]["model_weights_path"],
@@ -90,14 +86,10 @@ def main():
     # Final: Model → Robot
     T_model_to_robot = T_camera_to_robot @ T_model_to_camera
 
-    print(f"T_model_to_camera: {T_model_to_camera}")
-    print(f"T_model_to_robot: {T_model_to_robot}")
-
     model_pcd = o3d.io.read_point_cloud(model_path)
     model_pcd.transform(T_model_to_robot)
 
     full_pcd = create_full_pointcloud_from_rgbd(depth_frame, color_image, color_intr)
-
 
     o3d.visualization.draw_geometries(
         [full_pcd, model_pcd] + draw_frames(get_camera_pose(config), get_robot_pose(config))
@@ -118,10 +110,10 @@ def main():
         + grasp_frames
         + draw_frames(get_camera_pose(config), get_robot_pose(config))
     )
-  
+    
+    class_id = class_label.split()[1]
 
-    # model_mesh = load_scaled_mesh_from_stl("object_models/Plate2.stl", model_pcd)
-    model_mesh = o3d.io.read_triangle_mesh("object_models/Plate2.stl")
+    model_mesh = o3d.io.read_triangle_mesh(f"object_models/Plate{class_id}.stl")
     model_mesh.scale(0.001, center=(0,0,0))   # important!
 
     # Draw overlay

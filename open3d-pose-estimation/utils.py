@@ -304,3 +304,41 @@ def draw_model_on_image(image, mesh, T_model_cam, intrinsics, color=(0,255,0)):
     return img
 
 
+def capture_from_file(depth_path, color_path, depth_scale=1.0):
+    """
+    Loads a depth and RGB image from files and returns them
+    in the same format as capture_frames().
+
+    depth_path: path to depth PNG (uint16 or uint8)
+    color_path: path to RGB PNG or JPG
+    depth_scale: multiply depth values (e.g. RealSense depth is in millimeters)
+
+    Returns:
+        depth_frame: numpy array HxW (float32 depth in meters)
+        color_image: numpy array HxWx3 (uint8 RGB)
+    """
+
+    # Load depth (16-bit PNG recommended)
+    depth_img = cv2.imread(depth_path, cv2.IMREAD_UNCHANGED)
+    if depth_img is None:
+        raise FileNotFoundError(f"Could not load depth image: {depth_path}")
+
+    # Convert depth to meters if needed
+    depth_frame = depth_img.astype(np.float32) * depth_scale
+
+    # Load color image (BGR → RGB)
+    color_bgr = cv2.imread(color_path, cv2.IMREAD_COLOR)
+    if color_bgr is None:
+        raise FileNotFoundError(f"Could not load color image: {color_path}")
+
+    color_image = cv2.cvtColor(color_bgr, cv2.COLOR_BGR2RGB)
+
+    return depth_frame, color_image
+
+
+def capture_from_index(idx, folder="captured_dataset", depth_scale=1.0):
+    depth_path = f"{folder}/depth_{idx:03d}.png"
+    color_path = f"{folder}/rgb_{idx:03d}.png"
+    return capture_from_file(depth_path, color_path, depth_scale)
+
+
