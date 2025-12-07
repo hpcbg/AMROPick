@@ -72,10 +72,10 @@ def run_alignment(model_path, scene_path):
     model_down = model.voxel_down_sample(voxel_size)
     scene_down = scene.voxel_down_sample(voxel_size)
 
-    # if visualize:
-    #     model_down.paint_uniform_color([1, 0, 0])  # red
-    #     scene_down.paint_uniform_color([0, 0, 1])  # blue
-    #     draw_registration_result(scene_down, model_down, window_name="Downsampled Clouds")
+    if visualize:
+        model_down.paint_uniform_color([1, 0, 0])  # red
+        scene_down.paint_uniform_color([0, 0, 1])  # blue
+        draw_registration_result(scene_down, model_down, window_name="Downsampled Clouds")
 
     if skip_ransac:
         print("[INFO] Skipping RANSAC. Using identity matrix for initial alignment.")
@@ -163,10 +163,7 @@ def run_alignment(model_path, scene_path):
 
     T_total = result_icp.transformation @ T_init
     result_icp.transformation = T_total  # replace with the full transformation
-
-    # print("ICP raw transform:\n", result_icp.transformation)
-    # print("T_total:\n", T_total)        
-
+     
     return result_icp
 
 

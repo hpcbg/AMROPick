@@ -279,6 +279,7 @@ def draw_model_on_image(image, mesh, T_model_cam, intrinsics, color=(0,255,0)):
         (pix[:, 0] >= 0) & (pix[:, 0] < w) &
         (pix[:, 1] >= 0) & (pix[:, 1] < h)
     )
+    
     print("Points inside image:", inside_mask.sum(), "/", len(pix))
 
     # Draw 20 debug points
@@ -287,10 +288,6 @@ def draw_model_on_image(image, mesh, T_model_cam, intrinsics, color=(0,255,0)):
             cv2.circle(img, (u, v), 4, (0, 0, 255), -1)
 
     print("--- End Projection Debug ---\n")
-
-
-
-
 
     # Project to image
     pix = project_points_to_image(verts_cam, intrinsics)
@@ -306,21 +303,4 @@ def draw_model_on_image(image, mesh, T_model_cam, intrinsics, color=(0,255,0)):
 
     return img
 
-
-def load_scaled_mesh_from_stl(stl_path, model_pcd_for_icp):
-    mesh = o3d.io.read_triangle_mesh(stl_path)
-    mesh.compute_vertex_normals()
-
-    # estimate scale from extents
-    bbox_pcd  = model_pcd_for_icp.get_axis_aligned_bounding_box()
-    bbox_mesh = mesh.get_axis_aligned_bounding_box()
-    ext_pcd   = bbox_pcd.get_extent()
-    ext_mesh  = bbox_mesh.get_extent()
-
-    scale = float(np.mean(ext_pcd / ext_mesh))
-    print("Using mesh scale:", scale)
-
-    mesh.scale(scale, center=bbox_mesh.get_center())
-
-    return mesh
 

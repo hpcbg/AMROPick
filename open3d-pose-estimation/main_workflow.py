@@ -15,7 +15,6 @@ from utils import (
     select_grasp_point_from_model, 
     create_grasp_frame,
     draw_model_on_image,
-    load_scaled_mesh_from_stl
 )
 from realsense_setup import start_realsense, capture_frames
 from run_icp_alignment import run_alignment
@@ -30,10 +29,10 @@ def main():
 
     print("[INFO] Capturing frame...")
     depth_frame, color_image, depth_vis = capture_frames(pipeline, align, profile)
-    os.makedirs(intermediate_results, exist_ok=True)
-    cv2.imwrite(os.path.join(intermediate_results, "captured_rgb.png"), color_image)
-    cv2.imwrite(os.path.join(intermediate_results, "filtered_depth.png"), depth_vis)
-    cv2.imwrite(os.path.join(intermediate_results, "depth_frame.png"), depth_frame)
+    # os.makedirs(intermediate_results, exist_ok=True)
+    # cv2.imwrite(os.path.join(intermediate_results, "captured_rgb.png"), color_image)
+    # cv2.imwrite(os.path.join(intermediate_results, "filtered_depth.png"), depth_vis)
+    # cv2.imwrite(os.path.join(intermediate_results, "depth_frame.png"), depth_frame)
 
     print("[INFO] Running segmentation...")
     masks, detections, names = run_segmentation(
@@ -82,10 +81,6 @@ def main():
     print("[INFO] Alignment:")
     alignment = run_alignment(model_path=model_path, scene_path=cut_scene_path)
 
-    # T_model_to_object = alignment.transformation
-    # T_model_to_robot = T_model_to_object
-
-
     # ICP output: Model → Camera
     T_model_to_camera = alignment.transformation
 
@@ -95,53 +90,14 @@ def main():
     # Final: Model → Robot
     T_model_to_robot = T_camera_to_robot @ T_model_to_camera
 
-
-    print("MODEL→CAMERA:\n", T_model_to_camera)
-    print("CAMERA→ROBOT:\n", T_camera_to_robot)
-    print("MODEL→ROBOT:\n", T_model_to_robot)
-
-
-    print("[INFO] Transformation model → robot:")
-    print(T_model_to_robot)
-
-
-
-
-    print("[INFO] Transformation from model to robot base:")
-    print(T_model_to_robot)
+    print(f"T_model_to_camera: {T_model_to_camera}")
+    print(f"T_model_to_robot: {T_model_to_robot}")
 
     model_pcd = o3d.io.read_point_cloud(model_path)
     model_pcd.transform(T_model_to_robot)
 
     full_pcd = create_full_pointcloud_from_rgbd(depth_frame, color_image, color_intr)
 
-
-    # # Convert to Open3D frame
-    # T_rs_to_o3d = np.eye(4)
-    # T_rs_to_o3d[1,1] = -1   # flip Y
-    # T_rs_to_o3d[2,2] = -1   # flip Z
-
-    # T_robot_o3d = get_robot_pose(config)
-
-    # # Convert scene point cloud
-    # full_pcd.transform(T_rs_to_o3d)
-
-    # # Convert aligned model (it is in camera frame)
-    # model_pcd.transform(T_rs_to_o3d)
-
-    # # Convert camera pose (because camera is mounted and defined relative to robot but expressed in RealSense CS)
-    # T_cam_robot_rs = get_camera_pose(config)
-    # T_cam_robot_o3d = T_rs_to_o3d @ T_cam_robot_rs
-
-    # print("Camera (Open3D):\n", T_cam_robot_o3d)
-    # print("Robot  (Open3D):\n", T_robot_o3d)
-
-    # # Visualize
-    # o3d.visualization.draw_geometries(
-    #     [
-    #         full_pcd, model_pcd] 
-    #         + draw_frames(T_cam_robot_o3d, T_robot_o3d)
-    # )
 
     o3d.visualization.draw_geometries(
         [full_pcd, model_pcd] + draw_frames(get_camera_pose(config), get_robot_pose(config))
@@ -162,15 +118,8 @@ def main():
         + grasp_frames
         + draw_frames(get_camera_pose(config), get_robot_pose(config))
     )
-
-    # # final_transform = 4x4 matrix model → camera frame
-    # aligned_mesh = copy.deepcopy(model_mesh)
-    # aligned_mesh.transform(final_transform)
-
-    # Load image
-    color_image = color_image
-
   
+
     # model_mesh = load_scaled_mesh_from_stl("object_models/Plate2.stl", model_pcd)
     model_mesh = o3d.io.read_triangle_mesh("object_models/Plate2.stl")
     model_mesh.scale(0.001, center=(0,0,0))   # important!
