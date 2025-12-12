@@ -1,0 +1,8 @@
+ultralytics
+opencv-contrib-python
+jupyter
+xarm-python-sdk
+torch
+torchaudio
+torchvision
+segment-anything
