@@ -142,3 +142,8 @@ dmypy.json
 
 # Images
 *.png
+!captured_dataset/*.png
+
+# Point cloulds
+*.ply
+!object_models/*.ply

@@ -14,7 +14,8 @@ from utils import (
     draw_frames,
     select_grasp_point_from_model, 
     create_grasp_frame,
-    draw_model_on_image
+    draw_model_on_image,
+    load_frames_from_file
 )
 from realsense_setup import start_realsense, capture_frames
 from run_icp_alignment import run_alignment
@@ -23,13 +24,19 @@ def main():
     config = load_config()
     intermediate_results = config["paths"]["intermediate_results"]
 
-    pipeline, align, profile = start_realsense()
-    color_profile = profile.get_stream(rs.stream.color).as_video_stream_profile()
-    color_intr = color_profile.get_intrinsics()
-
     print("[INFO] Capturing frame...")
-    depth_frame, color_image = capture_frames(pipeline, align, profile)
- 
+
+    if config["source"] == "camera":
+        print("[INFO] Capturing frame from RealSense...")
+        pipeline, align, profile = start_realsense()
+        color_profile = profile.get_stream(rs.stream.color).as_video_stream_profile()
+        color_intr = color_profile.get_intrinsics()
+        depth_frame, color_image = capture_frames(pipeline, align, profile)
+        pipeline.stop()
+    elif config["source"] == "file":
+        print(f"[INFO] Loading dataset #{config["file_index"]} from file...")
+        depth_frame, color_image, color_intr = load_frames_from_file(config["file_index"])
+
     print("[INFO] Running segmentation...")
     masks, detections, names = run_segmentation(
         config["paths"]["model_weights_path"],
@@ -79,10 +86,8 @@ def main():
 
     # ICP output: Model → Camera
     T_model_to_camera = alignment.transformation
-
     # Camera → Robot (from config)
     T_camera_to_robot = get_camera_pose(config)
-
     # Final: Model → Robot
     T_model_to_robot = T_camera_to_robot @ T_model_to_camera
 
@@ -90,12 +95,11 @@ def main():
     model_pcd.transform(T_model_to_robot)
 
     full_pcd = create_full_pointcloud_from_rgbd(depth_frame, color_image, color_intr)
-
     o3d.visualization.draw_geometries(
         [full_pcd, model_pcd] + draw_frames(get_camera_pose(config), get_robot_pose(config))
     )
 
-    # Example: Select grasp point on aligned model
+    # Select grasp point on aligned model
     grasp_pts, grasp_normals = select_grasp_point_from_model(model_path)
     # grasp_frames = [create_grasp_frame(p, n) for p, n in zip(grasp_pts, grasp_normals)]
 
@@ -110,13 +114,15 @@ def main():
         + grasp_frames
         + draw_frames(get_camera_pose(config), get_robot_pose(config))
     )
-    
-    class_id = class_label.split()[1]
 
-    model_mesh = o3d.io.read_triangle_mesh(f"object_models/Plate{class_id}.stl")
-    model_mesh.scale(0.001, center=(0,0,0))   # important!
+    print("[INFO] Drawing CAD model overlay on the captured image...")
+    # TODO Drawing lines from STL file works with limited models. 
+    # class_id = class_label.split()[1]
+    # model_mesh = o3d.io.read_triangle_mesh(f"object_models/Plate{class_id}.stl")
+    # model_mesh.scale(0.001, center=(0,0,0))
 
-    # Draw overlay
+    model_mesh = o3d.io.read_triangle_mesh(model_path)
+
     overlay = draw_model_on_image(
         image=color_image,
         mesh=model_mesh,                     # original mesh (not robot-transformed)
@@ -128,7 +134,6 @@ def main():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    pipeline.stop()
 
 if __name__ == "__main__":
     main()
