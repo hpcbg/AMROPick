@@ -2,7 +2,7 @@ import cv2
 import os
 import pyrealsense2 as rs
 import numpy as np
-from utils import load_config, capture_from_index
+from utils import load_config
 
 
 def start_realsense():
@@ -23,7 +23,7 @@ def capture_frames(pipeline, align, profile, apply_filters=False):
 
     if realsense_settings["capture_from_file"]:
         print("[INFO] Capturing frame from file")
-        depth_frame, color_image = capture_from_index(21)
+        depth_frame, color_image = capture_from_index(10)
         return depth_frame, color_image
 
     config = load_config()
@@ -89,6 +89,9 @@ def capture_frames(pipeline, align, profile, apply_filters=False):
     cv2.imwrite(os.path.join(intermediate_results, "captured_rgb.png"), color_frame)
     cv2.imwrite(os.path.join(intermediate_results, "filtered_depth.png"), colorized_depth)
     cv2.imwrite(os.path.join(intermediate_results, "depth_frame.png"), depth_frame)
+    store_intrinsics()
+
+
 
     return depth_frame, color_frame
 

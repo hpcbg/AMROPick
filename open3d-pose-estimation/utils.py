@@ -4,6 +4,7 @@ import open3d as o3d
 import pyrealsense2 as rs
 import yaml
 import os
+import json
 from ultralytics import YOLO
 
 def load_config(path="config.yaml"):
@@ -236,6 +237,14 @@ def project_points_to_image(points_3d, intrinsics):
 
     return np.stack([u, v], axis=1)
 
+
+def pointcloud_to_lineset(pcd, alpha=0.01):
+    mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(pcd, alpha)
+    mesh.compute_vertex_normals()
+    lineset = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
+    return lineset
+
+
 def draw_model_on_image(image, mesh, T_model_cam, intrinsics, color=(0,255,0)):
     """
     Draws the projected mesh edges of a CAD model onto an RGB image.
@@ -246,11 +255,19 @@ def draw_model_on_image(image, mesh, T_model_cam, intrinsics, color=(0,255,0)):
     intrinsics: camera intrinsics
     """
 
+    print("DEBUG mesh stats:")
+    print("  center:", mesh.get_center())
+    print("  bbox extent:", mesh.get_axis_aligned_bounding_box().get_extent())
+    print("  vertices:", len(mesh.vertices))
+    print("  triangles:", len(mesh.triangles))
+
+
     img = image.copy()
 
     # Convert mesh to lineset so we can draw edges
     mesh.compute_vertex_normals()
     lineset = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
+    # lineset = pointcloud_to_lineset(mesh)
 
     # Get vertices (Nx3)
     verts = np.asarray(lineset.points)
@@ -282,10 +299,9 @@ def draw_model_on_image(image, mesh, T_model_cam, intrinsics, color=(0,255,0)):
     
     print("Points inside image:", inside_mask.sum(), "/", len(pix))
 
-    # Draw 20 debug points
-    for (u, v) in pix[:20]:
+    for (u, v) in pix:
         if 0 <= u < w and 0 <= v < h:
-            cv2.circle(img, (u, v), 4, (0, 0, 255), -1)
+            cv2.circle(img, (u, v), 1, (0, 0, 200), -1)
 
     print("--- End Projection Debug ---\n")
 
@@ -304,41 +320,53 @@ def draw_model_on_image(image, mesh, T_model_cam, intrinsics, color=(0,255,0)):
     return img
 
 
-def capture_from_file(depth_path, color_path, depth_scale=1.0):
-    """
-    Loads a depth and RGB image from files and returns them
-    in the same format as capture_frames().
+def load_intrinsics(path):
+    """Load intrinsics from JSON and return rs.intrinsics() object."""
+    with open(path, "r") as f:
+        data = json.load(f)
 
-    depth_path: path to depth PNG (uint16 or uint8)
-    color_path: path to RGB PNG or JPG
-    depth_scale: multiply depth values (e.g. RealSense depth is in millimeters)
+    intr = rs.intrinsics()
+    intr.width  = data["width"]
+    intr.height = data["height"]
+    intr.fx     = data["fx"]
+    intr.fy     = data["fy"]
+    intr.ppx    = data["cx"]
+    intr.ppy    = data["cy"]
+    intr.model  = rs.distortion.inverse_brown_conrady
+    intr.coeffs = data.get("coeffs", [0,0,0,0,0])
 
-    Returns:
-        depth_frame: numpy array HxW (float32 depth in meters)
-        color_image: numpy array HxWx3 (uint8 RGB)
-    """
-
-    # Load depth (16-bit PNG recommended)
-    depth_img = cv2.imread(depth_path, cv2.IMREAD_UNCHANGED)
-    if depth_img is None:
-        raise FileNotFoundError(f"Could not load depth image: {depth_path}")
-
-    # Convert depth to meters if needed
-    depth_frame = depth_img.astype(np.float32) * depth_scale
-
-    # Load color image (BGR → RGB)
-    color_bgr = cv2.imread(color_path, cv2.IMREAD_COLOR)
-    if color_bgr is None:
-        raise FileNotFoundError(f"Could not load color image: {color_path}")
-
-    color_image = cv2.cvtColor(color_bgr, cv2.COLOR_BGR2RGB)
-
-    return depth_frame, color_image
+    return intr
 
 
-def capture_from_index(idx, folder="captured_dataset", depth_scale=1.0):
-    depth_path = f"{folder}/depth_{idx:03d}.png"
-    color_path = f"{folder}/rgb_{idx:03d}.png"
-    return capture_from_file(depth_path, color_path, depth_scale)
+def load_frames_from_file(index, folder="captured_dataset"):
+    """Load RGB, depth and intrinsics from stored files."""
+    rgb_path   = os.path.join(folder, f"rgb_{index:03d}.png")
+    depth_path = os.path.join(folder, f"depth_{index:03d}.png")
+    intr_path  = os.path.join(folder, "intrinsics.json")
+
+    if not os.path.exists(rgb_path) or not os.path.exists(depth_path):
+        raise FileNotFoundError(f"Dataset {index} does not exist.")
+
+    color_image = cv2.imread(rgb_path, cv2.IMREAD_COLOR)
+    depth_raw   = cv2.imread(depth_path, cv2.IMREAD_UNCHANGED)
+
+    if depth_raw.dtype != np.uint16:
+        raise ValueError("Depth file must be saved as 16-bit PNG.")
+
+    color_intr = load_intrinsics(intr_path)
+
+    # Convert depth to RS frame-like ndarray
+    depth_frame = depth_raw.copy()
+
+    return depth_frame, color_image, color_intr
+
+
+def debug_stl():
+    for i in [1,2,3,4,5]:
+        mesh = o3d.io.read_triangle_mesh(f"object_models/Plate{i}.stl")
+        bbox = mesh.get_axis_aligned_bounding_box().get_extent()
+        print(f"Plate{i} STL bbox:", bbox)
+        print(mesh.get_rotation_matrix_from_xyz((0,0,0)))
+
 
 

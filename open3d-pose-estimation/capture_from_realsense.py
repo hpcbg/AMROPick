@@ -1,22 +1,38 @@
 import os
 import cv2
-import numpy as np
 import open3d as o3d
 import argparse
+import json
 
 from utils import extract_masked_pointcloud, capture_filtered, load_config
 from realsense_utils import setup_pipeline
 import pyrealsense2 as rs
 
 
-def main():
-    config = load_config()
+def store_intrinsics(color_intr, output_folder, counter):
+    intr_path = f"{output_folder}/intrinsics_{counter:03d}.json"
 
+    if not os.path.exists(intr_path):
+        intr_data = {
+            "width": color_intr.width,
+            "height": color_intr.height,
+            "fx": color_intr.fx,
+            "fy": color_intr.fy,
+            "cx": color_intr.ppx,
+            "cy": color_intr.ppy,
+            "coeffs": list(color_intr.coeffs)
+        }
+        with open(intr_path, "w") as f:
+            json.dump(intr_data, f, indent=4)
+        print("[INFO] Intrinsics saved.")
+
+
+def main():
     parser = argparse.ArgumentParser(description="Capture and save RGBD data with optional mask cutting.")
     parser.add_argument('--cut', action='store_true')
     parser.add_argument('--save-full', action='store_true')
     parser.add_argument('--save-cut', action='store_true')
-    parser.add_argument('--output', type=str, default="captured_dataset", help="Output directory")
+    parser.add_argument('--output', type=str, default="captured_data", help="Output directory")
     parser.add_argument('--mask-path', type=str, help="Path to mask image")
     args = parser.parse_args()
     os.makedirs(args.output, exist_ok=True)
@@ -24,11 +40,6 @@ def main():
     pipeline, align, profile = setup_pipeline()
     color_profile = profile.get_stream(rs.stream.color).as_video_stream_profile()
     color_intr = color_profile.get_intrinsics()
-    # color_sensor = profile.get_device().first_color_sensor()
-    # color_sensor.set_option(rs.option.sharpness, config["camera"]["rgb"]["sharpness"])
-    # color_sensor.set_option(rs.option.contrast, config["camera"]["rgb"]["contrast"])
-    # color_sensor.set_option(rs.option.gamma, config["camera"]["rgb"]["gamma"])
-    # color_sensor.set_option(rs.option.saturation, config["camera"]["rgb"]["saturation"])
 
     pinhole = o3d.camera.PinholeCameraIntrinsic(
         color_intr.width, color_intr.height,
@@ -39,7 +50,6 @@ def main():
 
     while True:
         print("[INFO] Press 's' to save, 'q' to quit...")
-
         depth_frame, color_image, depth_vis = capture_filtered(pipeline, align)
 
         if args.cut and args.mask_path:
@@ -60,6 +70,7 @@ def main():
             cv2.imwrite(f"{args.output}/rgb_{counter:03d}.png", color_image)
             cv2.imwrite(f"{args.output}/depth_{counter:03d}.png", depth_frame)
             cv2.imwrite(f"{args.output}/depth_vis_{counter:03d}.png", depth_vis)
+            store_intrinsics(color_intr, args.output, counter)
 
             if args.save_full:
                 color_o3d = o3d.geometry.Image(cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB))

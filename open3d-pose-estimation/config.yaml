@@ -78,3 +78,6 @@ camera:
       enabled: true
       smooth_alpha: 0.39
       smooth_delta: 38
+
+source: "file"
+file_index: 7

@@ -34,6 +34,27 @@ def convert_stl_to_ply(input_stl, output_ply, mode, scale_to_meters=True,
         print(f"[INFO] Sampling full mesh surface using {sampling_method} sampling...")
         mesh = sample_surface_points(mesh, num_points, sampling_method)
 
+    if mode == "mesh":
+        print(f"[INFO] Saving triangle mesh to: {output_ply}")
+
+        # Ensure normals exist
+        mesh.compute_vertex_normals()
+
+        # Creates good outline, but loses the points.
+        # o3d.io.write_triangle_mesh(output_ply, mesh, write_ascii=False)
+
+        # Sample points directly from that mesh
+        print("[INFO] Sampling 5000 surface points...")
+        pcd = mesh.sample_points_uniformly(number_of_points=5000)
+
+        print(f"[INFO] Saving point cloud to: {output_ply}")
+        o3d.io.write_point_cloud(output_ply, pcd)
+        print("[DONE]")
+
+        print("[DONE] Mesh export complete.")
+        exit(0)
+
+
     elif mode == "topdown":
         print("[INFO] Extracting top-facing triangles...")
         mesh.compute_triangle_normals()
