@@ -34,7 +34,7 @@ def main():
         depth_frame, color_image = capture_frames(pipeline, align, profile)
         pipeline.stop()
     elif config["source"] == "file":
-        print(f"[INFO] Loading dataset #{config["file_index"]} from file...")
+        print(f"[INFO] Loading dataset #{config['file_index']} from file...")
         depth_frame, color_image, color_intr = load_frames_from_file(config["file_index"])
 
     print("[INFO] Running segmentation...")
